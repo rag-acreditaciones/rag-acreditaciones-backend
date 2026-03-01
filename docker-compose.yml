@@ -1,0 +1,103 @@
+# ============================================================
+# docker-compose.yml — Entorno LOCAL de desarrollo
+# ============================================================
+# Versiones pinadas — actualizar periódicamente consultando:
+#   pgvector: https://hub.docker.com/r/pgvector/pgvector/tags
+#   ollama:   https://hub.docker.com/r/ollama/ollama/tags
+# ============================================================
+
+services:
+
+  # ── PostgreSQL + pgvector ──────────────────────────────────
+  postgres:
+    image: pgvector/pgvector:0.8.1-pg16
+    container_name: ragdaw-postgres
+
+    environment:
+      POSTGRES_DB: ragdaw
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+    ports:
+      - "127.0.0.1:5432:5432"          # Solo accesible desde localhost
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./seed/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./seed/data.sql:/docker-entrypoint-initdb.d/02-data.sql:ro
+
+    # La imagen postgres ya ejecuta como usuario 'postgres' (no root)
+    # internamente gracias a su entrypoint (gosu postgres).
+
+    read_only: true
+    tmpfs:
+      - /tmp:size=100m
+      - /run/postgresql:size=10m       # Socket de PostgreSQL
+    shm_size: 256mb                    # Necesario para índices HNSW paralelos
+
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN                          # initdb necesita cambiar owner de /var/lib/postgresql
+      - SETUID                         # gosu necesita setuid para cambiar a user postgres
+      - SETGID                         # gosu necesita setgid
+      - FOWNER                         # initdb necesita fchown en datadir
+      - DAC_READ_SEARCH                # initdb necesita leer directorios
+
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "2.0"
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+    networks:
+      - ragdaw-net
+
+  # ── Ollama (LLM local) ────────────────────────────────────
+  ollama:
+    image: ollama/ollama:0.6.2
+    container_name: ragdaw-ollama
+
+    ports:
+      - "127.0.0.1:11434:11434"        # Solo accesible desde localhost
+
+    volumes:
+      - ollama_data:/root/.ollama
+
+    # Ollama necesita escribir en varios sitios (/root/.ollama, /tmp)
+    # y necesita más capabilities para mmap de modelos grandes.
+    # No se puede poner read_only porque carga modelos dinámicamente.
+
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - SYS_RESOURCE                   # Necesario para mlock/mmap de modelos en RAM
+
+    deploy:
+      resources:
+        limits:
+          memory: 8g                   # Ajustar según RAM disponible
+          cpus: "4.0"                  # Ajustar según cores disponibles
+
+    networks:
+      - ragdaw-net
+
+# ── Volúmenes persistentes ────────────────────────────────────
+volumes:
+  postgres_data:
+  ollama_data:
+
+# ── Red aislada ───────────────────────────────────────────────
+networks:
+  ragdaw-net:
+    driver: bridge

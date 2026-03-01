@@ -1,0 +1,98 @@
+# ============================================================
+# docker-compose.morfeo.yml — Servidor Morfeo con GPU NVIDIA
+# ============================================================
+# Uso: docker compose -f docker-compose.morfeo.yml up -d
+# ============================================================
+
+services:
+
+  # ── PostgreSQL + pgvector ──────────────────────────────────
+  postgres:
+    image: pgvector/pgvector:0.8.1-pg16
+    container_name: ragdaw-postgres
+
+    environment:
+      POSTGRES_DB: ragdaw
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+    ports:
+      - "127.0.0.1:5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./seed/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./seed/data.sql:/docker-entrypoint-initdb.d/02-data.sql:ro
+
+    read_only: true
+    tmpfs:
+      - /tmp:size=100m
+      - /run/postgresql:size=10m
+    shm_size: 512mb                    # Más SHM para servidor
+
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - FOWNER
+      - DAC_READ_SEARCH
+
+    deploy:
+      resources:
+        limits:
+          memory: 4g
+          cpus: "4.0"
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+    networks:
+      - ragdaw-net
+
+  # ── Ollama con GPU NVIDIA ──────────────────────────────────
+  ollama:
+    image: ollama/ollama:0.6.2
+    container_name: ragdaw-ollama
+
+    ports:
+      - "0.0.0.0:11434:11434"          # En Morfeo sí exponemos a la red
+                                        # para que los alumnos conecten remotamente.
+
+    volumes:
+      - ollama_data:/root/.ollama
+
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - SYS_RESOURCE
+
+    deploy:
+      resources:
+        limits:
+          memory: 32g
+          cpus: "8.0"
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+    networks:
+      - ragdaw-net
+
+volumes:
+  postgres_data:
+  ollama_data:
+
+networks:
+  ragdaw-net:
+    driver: bridge

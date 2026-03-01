@@ -1,0 +1,561 @@
+###############################################################################
+##  PRUEBAS DE ENDPOINTS — RAG DAW Acredita
+##  Plugin: REST Client (VSCode) — humao.rest-client
+##  
+##  Instrucciones:
+##    1. Arrancar docker-compose up -d
+##    2. Arrancar Spring Boot
+##    3. Ejecutar primero "Login OK" para obtener el token
+##    4. Copiar el token en la variable @token
+###############################################################################
+
+@baseUrl = http://localhost:8080
+
+## ═══════════════════════════════════════════════════════════════════════════
+##  AUTENTICACIÓN
+## ═══════════════════════════════════════════════════════════════════════════
+
+###
+## 1. Login OK → Copiar el token del response
+POST {{baseUrl}}/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+    "nickname": "candidato@example.com",
+    "password": "NoTeLoDigo@1"
+}
+
+###
+## 2. Login NO OK — contraseña incorrecta (debe dar 401)
+POST {{baseUrl}}/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+    "nickname": "candidato@example.com",
+    "password": "PasswordIncorrecta@2"
+}
+
+###
+## 3. Login — usuario no existe (debe dar 401 o 404)
+POST {{baseUrl}}/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+    "nickname": "noexiste@example.com",
+    "password": "NoTeLoDigo@1"
+}
+
+###
+## 4. Login — datos incompletos / validación (debe dar 400)
+POST {{baseUrl}}/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+    "nickname": "jose",
+    "password": "Pass"
+}
+
+## ─── TOKEN: Pegar aquí el token obtenido del login OK ───
+@token = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjYW5kaWRhdG9AZXhhbXBsZS5jb20iLCJpYXQiOjE3NzIxMjM3NTQsImV4cCI6MTc3MjE1OTc1NH0.ipCB-mqwJYmbh4Zwdljqr0KWlJuKl450cJP_P6Uu6Uw
+#.PEGAR_AQUI_EL_TOKEN_COMPLETO
+
+
+## ═══════════════════════════════════════════════════════════════════════════
+##  RAG INTERNAL — /api/internal/rag/
+## ═══════════════════════════════════════════════════════════════════════════
+
+###
+## 5. Health check (no requiere auth si SecurityConfig lo permite)
+GET {{baseUrl}}/api/internal/rag/health HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 6. Configuración RAG por defecto
+GET {{baseUrl}}/api/internal/rag/configuraciones/defecto HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 7. Listar configuraciones RAG — paginado GET (sin filtros)
+GET {{baseUrl}}/api/internal/rag/configuraciones?page=0&size=10&sort=id,asc HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 8. Listar configuraciones RAG — paginado GET (con filtro)
+GET {{baseUrl}}/api/internal/rag/configuraciones?filter=nombre:contiene:Local&page=0&size=10&sort=id,asc HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 9. Listar configuraciones RAG — paginado POST (body con filtros avanzados) FALLA por booleanos
+POST {{baseUrl}}/api/internal/rag/configuraciones HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "listaFiltros": [
+        {
+            "atributo": "activo",
+            "operacion": "IGUAL",
+            "valor": "true"
+        }
+    ],
+    "page": 0,
+    "size": 10,
+    "sort": ["id,asc"]
+}
+
+###
+## 10. Ingestar PDF — multipart/form-data
+##     NOTA: Ajustar la ruta del fichero al PDF que quieras ingestar
+POST {{baseUrl}}/api/internal/rag/ingestar HTTP/1.1
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=----RagBoundary
+
+------RagBoundary
+Content-Disposition: form-data; name="file"; filename="manual_peac.pdf"
+Content-Type: application/pdf
+
+< ./seed/pdfs/general/2023_Manual_Procedimiento_PEAC.pdf
+------RagBoundary
+Content-Disposition: form-data; name="documentoId"
+
+1
+------RagBoundary
+Content-Disposition: form-data; name="seccion"
+
+GENERAL
+------RagBoundary
+Content-Disposition: form-data; name="subidoPor"
+
+candidato@example.com
+------RagBoundary--
+
+###
+## 11. Preguntar al RAG — chat síncrono 
+POST {{baseUrl}}/api/internal/rag/preguntar HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "pregunta": "¿Que es el Catálogo Nacional de Estándares de Competencias profesionales?",
+    "seccion": "GENERAL",
+    "ragConfigId": 1
+}
+
+###
+## 11. Preguntar al RAG — chat síncrono (sin especificar sección) FALLA por nulos
+POST {{baseUrl}}/api/internal/rag/preguntar HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "pregunta": "¿Cuáles son los requisitos para acreditar competencias profesionales?",
+    "seccion": null,
+    "ragConfigId": null
+}
+
+###
+## 12. Preguntar al RAG — chat síncrono (filtrando por sección BD)
+POST {{baseUrl}}/api/internal/rag/preguntar HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "pregunta": "¿Qué competencias cubre el estándar ECP0224_3 de bases de datos?",
+    "seccion": "BD",
+    "ragConfigId": 1
+}
+
+###
+## 12. Preguntar al RAG — chat síncrono (filtrando por sección BD) FALLA por nulos
+POST {{baseUrl}}/api/internal/rag/preguntar HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "pregunta": "¿Qué competencias cubre el estándar ECP0224_3 de bases de datos?",
+    "seccion": "BD",
+    "ragConfigId": null
+}
+
+###
+## 13. Preguntar al RAG — chat síncrono (sección Programación)
+POST {{baseUrl}}/api/internal/rag/preguntar HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "pregunta": "¿Qué evidencias necesito para acreditar competencias de programación?",
+    "seccion": "PROGRAMACION"
+}
+
+
+###
+## 14. Preguntar al RAG — streaming SSE
+##     NOTA: En REST Client se verá el stream completo al finalizar.
+##           Para ver streaming real, usar curl en terminal:
+##           curl -N -H "Authorization: Bearer TOKEN" \
+##             "http://localhost:8080/api/internal/rag/preguntar/stream?pregunta=Hola&seccion=GENERAL"
+GET {{baseUrl}}/api/internal/rag/preguntar/stream?pregunta=¿Qué es el PEAC?&seccion=GENERAL HTTP/1.1
+Authorization: Bearer {{token}}
+Accept: text/event-stream
+
+###
+## 15. Preguntar al RAG — streaming SSE (con ragConfigId específico)
+GET {{baseUrl}}/api/internal/rag/preguntar/stream?pregunta=¿Cómo funciona la evaluación?&seccion=BD&ragConfigId=1 HTTP/1.1
+Authorization: Bearer {{token}}
+Accept: text/event-stream
+
+
+## ═══════════════════════════════════════════════════════════════════════════
+##  EQUIPO 1 — DOCUMENTOS — /api/v1/documentos/
+## ═══════════════════════════════════════════════════════════════════════════
+
+###
+## 16. Subir documento (multipart: file + metadata)
+POST {{baseUrl}}/api/v1/documentos/upload HTTP/1.1
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=----DocBoundary
+
+------DocBoundary
+Content-Disposition: form-data; name="file"; filename="guia_candidata.pdf"
+Content-Type: application/pdf
+
+< ./seed/pdfs/general/2023_Guía_PersonaCandidata_PEAC.pdf
+------DocBoundary
+Content-Disposition: form-data; name="metadata"
+Content-Type: application/json
+
+{
+    "seccionTematicaId": 1,
+    "descripcion": "Guía para la persona candidata PEAC 2023"
+}
+------DocBoundary--
+
+###
+## 17. Listar documentos — paginado con filtros GET
+GET {{baseUrl}}/api/v1/documentos?page=0&size=10&sort=fechaSubida,desc HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 18. Listar documentos — con filtros específicos
+GET {{baseUrl}}/api/v1/documentos?seccionId=1&estado=PROCESADO&page=0&size=5&sort=nombreFichero,asc HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 19. Listar documentos — filtro por nombre y rango de fechas
+GET {{baseUrl}}/api/v1/documentos?nombre=guia&fechaDesde=2024-01-01&fechaHasta=2025-12-31&page=0&size=10 HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 20. Detalle de un documento
+GET {{baseUrl}}/api/v1/documentos/1 HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 21. Descargar fichero original (byte[])
+GET {{baseUrl}}/api/v1/documentos/1/download HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 22. Preview del PDF (Base64 para visualización inline)
+GET {{baseUrl}}/api/v1/documentos/1/preview HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 23. Borrado lógico de un documento
+DELETE {{baseUrl}}/api/v1/documentos/1 HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 24. Listado de secciones temáticas (para combos)
+GET {{baseUrl}}/api/v1/secciones-tematicas HTTP/1.1
+Authorization: Bearer {{token}}
+
+
+## ═══════════════════════════════════════════════════════════════════════════
+##  EQUIPO 2 — CHUNKS — /api/v1/chunks/
+## ═══════════════════════════════════════════════════════════════════════════
+
+###
+## 25. Chunks de un documento — paginado
+GET {{baseUrl}}/api/v1/chunks/documento/1?page=0&size=10&sort=ordenChunk,asc HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 26. Chunks de un documento — filtrado por estado
+GET {{baseUrl}}/api/v1/chunks/documento/1?estado=ACTIVO&page=0&size=5 HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 27. Detalle de un chunk
+GET {{baseUrl}}/api/v1/chunks/1 HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 28. Búsqueda textual en chunks
+GET {{baseUrl}}/api/v1/chunks/buscar?texto=competencias&seccionId=1&page=0&size=10 HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 29. Búsqueda semántica (similitud vectorial)
+POST {{baseUrl}}/api/v1/chunks/busqueda-semantica HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "consulta": "¿Cuáles son los requisitos para acreditar bases de datos?",
+    "topK": 5
+}
+
+###
+## 30. Estadísticas de chunks de un documento
+GET {{baseUrl}}/api/v1/chunks/documento/1/stats HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 31. Cambiar estado de un chunk
+PATCH {{baseUrl}}/api/v1/chunks/1/estado HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "estado": "REVISADO"
+}
+
+
+## ═══════════════════════════════════════════════════════════════════════════
+##  EQUIPO 3 — CHATS — /api/v1/conversaciones/
+## ═══════════════════════════════════════════════════════════════════════════
+
+###
+## 32. Crear conversación
+POST {{baseUrl}}/api/v1/conversaciones HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "seccionTematica": "BD"
+}
+
+###
+## 33. Listar conversaciones del usuario — paginado
+GET {{baseUrl}}/api/v1/conversaciones?page=0&size=10&sort=fechaCreacion,desc HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 34. Listar conversaciones — filtrado por sección y estado
+GET {{baseUrl}}/api/v1/conversaciones?seccion=BD&estado=ACTIVA&page=0&size=5 HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 35. Detalle de una conversación (con todos los mensajes)
+GET {{baseUrl}}/api/v1/conversaciones/1 HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 36. Enviar pregunta al RAG dentro de una conversación
+POST {{baseUrl}}/api/v1/conversaciones/1/preguntas HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "texto": "¿Qué competencias cubre el estándar ECP0224_3?"
+}
+
+###
+## 37. Segunda pregunta en la misma conversación
+POST {{baseUrl}}/api/v1/conversaciones/1/preguntas HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "texto": "¿Y qué evidencias necesito presentar para ese estándar?"
+}
+
+###
+## 38. Mensajes paginados de una conversación
+GET {{baseUrl}}/api/v1/conversaciones/1/mensajes?page=0&size=20 HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 39. Archivar conversación
+PATCH {{baseUrl}}/api/v1/conversaciones/1/archivar HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 40. Eliminar conversación
+DELETE {{baseUrl}}/api/v1/conversaciones/2 HTTP/1.1
+Authorization: Bearer {{token}}
+
+
+## ═══════════════════════════════════════════════════════════════════════════
+##  EQUIPO 4 — FEEDBACK — /api/v1/valoraciones/ + /reportes/ + /calidad/
+## ═══════════════════════════════════════════════════════════════════════════
+
+###
+## 41. Crear valoración POSITIVA (mano arriba 👍)
+POST {{baseUrl}}/api/v1/valoraciones HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "mensajeId": 2,
+    "valoracion": "POSITIVA",
+    "comentario": "Muy útil, responde exactamente lo que necesitaba"
+}
+
+###
+## 42. Crear valoración NEGATIVA (mano abajo 👎)
+POST {{baseUrl}}/api/v1/valoraciones HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "mensajeId": 4,
+    "valoracion": "NEGATIVA",
+    "comentario": "La respuesta no tiene relación con la pregunta"
+}
+
+###
+## 43. Valoraciones de un mensaje concreto
+GET {{baseUrl}}/api/v1/valoraciones/mensaje/2 HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 44. Resumen de valoraciones de una conversación
+GET {{baseUrl}}/api/v1/valoraciones/conversacion/1 HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 45. Eliminar mi valoración
+DELETE {{baseUrl}}/api/v1/valoraciones/1 HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 46. Reportar una respuesta incorrecta
+POST {{baseUrl}}/api/v1/reportes HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "mensajeId": 4,
+    "motivo": "INCORRECTA",
+    "descripcion": "La información sobre plazos está desactualizada, los plazos cambiaron en 2024"
+}
+
+###
+## 47. Reportar respuesta incompleta
+POST {{baseUrl}}/api/v1/reportes HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "mensajeId": 6,
+    "motivo": "INCOMPLETA",
+    "descripcion": "Falta mencionar la documentación necesaria del módulo de BD"
+}
+
+###
+## 48. Listar reportes — paginado con filtros
+GET {{baseUrl}}/api/v1/reportes?estado=PENDIENTE&page=0&size=10&sort=fechaCreacion,desc HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 49. Listar reportes — filtrado por motivo
+GET {{baseUrl}}/api/v1/reportes?motivo=INCORRECTA&page=0&size=10 HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 50. Cambiar estado de un reporte a REVISADO
+PATCH {{baseUrl}}/api/v1/reportes/1/estado HTTP/1.1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "estado": "REVISADO"
+}
+
+###
+## 51. Resumen global de calidad
+GET {{baseUrl}}/api/v1/calidad/resumen HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 52. Calidad por sección temática
+GET {{baseUrl}}/api/v1/calidad/por-seccion HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 53. Top respuestas MEJOR valoradas
+GET {{baseUrl}}/api/v1/calidad/top-respuestas?tipo=MEJOR&limit=10 HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 54. Top respuestas PEOR valoradas
+GET {{baseUrl}}/api/v1/calidad/top-respuestas?tipo=PEOR&limit=5 HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 55. Evolución temporal de calidad
+GET {{baseUrl}}/api/v1/calidad/evolucion?fechaDesde=2025-01-01&fechaHasta=2025-12-31&agrupacion=MES HTTP/1.1
+Authorization: Bearer {{token}}
+
+
+## ═══════════════════════════════════════════════════════════════════════════
+##  EQUIPO 5 — INFORMES / DASHBOARD — /api/v1/dashboard/
+## ═══════════════════════════════════════════════════════════════════════════
+
+###
+## 56. KPIs globales (resumen)
+GET {{baseUrl}}/api/v1/dashboard/resumen HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 57. Distribución de documentos por sección
+GET {{baseUrl}}/api/v1/dashboard/documentos/por-seccion HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 58. Distribución de documentos por estado
+GET {{baseUrl}}/api/v1/dashboard/documentos/por-estado HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 59. Evolución de subidas de documentos
+GET {{baseUrl}}/api/v1/dashboard/documentos/evolucion?fechaDesde=2025-01-01&fechaHasta=2025-12-31&agrupacion=SEMANA HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 60. Conversaciones por sección
+GET {{baseUrl}}/api/v1/dashboard/chats/por-seccion HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 61. Actividad diaria de preguntas (line chart)
+GET {{baseUrl}}/api/v1/dashboard/chats/actividad-diaria?fechaDesde=2025-01-01&fechaHasta=2025-06-30 HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 62. Distribución por hora del día (horas punta)
+GET {{baseUrl}}/api/v1/dashboard/chats/horas-punta HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 63. Ranking de usuarios más activos
+GET {{baseUrl}}/api/v1/dashboard/usuarios/ranking?limit=10&criterio=TOTAL HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 64. Ranking por documentos subidos
+GET {{baseUrl}}/api/v1/dashboard/usuarios/ranking?limit=5&criterio=DOCS HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 65. Distribución de usuarios por rol
+GET {{baseUrl}}/api/v1/dashboard/usuarios/por-rol HTTP/1.1
+Authorization: Bearer {{token}}
+
+###
+## 66. Actividad reciente (últimas 20 acciones)
+GET {{baseUrl}}/api/v1/dashboard/actividad-reciente HTTP/1.1
+Authorization: Bearer {{token}}
