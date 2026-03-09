@@ -1,4 +1,4 @@
-package org.simarro.rag_daw.informes.dto;
+package org.simarro.rag_daw.reportes.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
