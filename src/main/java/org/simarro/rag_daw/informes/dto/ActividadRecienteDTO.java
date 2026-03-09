@@ -1,4 +1,4 @@
-package org.simarro.rag_daw.reportes.dto;
+package org.simarro.rag_daw.informes.dto;
 
 import java.time.LocalDateTime;
 
@@ -12,8 +12,6 @@ import lombok.NoArgsConstructor;
 public class ActividadRecienteDTO {
     private String usuario;
     private String accion;      // "SUBIO_DOCUMENTO", "HIZO_PREGUNTA"...
-    private String recurso;     // nombre del doc o texto de la pregunta
     private LocalDateTime fecha;
-    // Constructor, getters, setters
 }
 

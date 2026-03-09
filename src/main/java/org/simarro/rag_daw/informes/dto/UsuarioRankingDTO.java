@@ -1,4 +1,4 @@
-package org.simarro.rag_daw.reportes.dto;
+package org.simarro.rag_daw.informes.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,7 +12,5 @@ public class UsuarioRankingDTO {
     private String nombre;
     private Long numDocumentos;
     private Long numConversaciones;
-    private Long total;
-    // Constructor, getters, setters
 }
 

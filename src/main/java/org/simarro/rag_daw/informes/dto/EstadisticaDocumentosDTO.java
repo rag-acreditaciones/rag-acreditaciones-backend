@@ -1,4 +1,4 @@
-package org.simarro.rag_daw.reportes.dto;
+package org.simarro.rag_daw.informes.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,6 +10,5 @@ import lombok.NoArgsConstructor;
 public class EstadisticaDocumentosDTO {
     private String etiqueta;    // nombre seccion o estado
     private Long cantidad;
-    // Constructor, getters, setters
 }
 

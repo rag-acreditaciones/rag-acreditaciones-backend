@@ -1,4 +1,4 @@
-package org.simarro.rag_daw.reportes.controller;
+package org.simarro.rag_daw.informes.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
