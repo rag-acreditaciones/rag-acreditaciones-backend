@@ -56,7 +56,7 @@ Content-Type: application/json
 }
 
 ## ─── TOKEN: Pegar aquí el token obtenido del login OK ───
-@token = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjYW5kaWRhdG9AZXhhbXBsZS5jb20iLCJpYXQiOjE3NzIxMjM3NTQsImV4cCI6MTc3MjE1OTc1NH0.ipCB-mqwJYmbh4Zwdljqr0KWlJuKl450cJP_P6Uu6Uw
+@token = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjYW5kaWRhdG9AZXhhbXBsZS5jb20iLCJpYXQiOjE3NzMwOTg1OTksImV4cCI6MTc3MzEzNDU5OX0.al3Q0ugaxcUcfk0DmXR-lj83mANnd499o-5KAoFrVVs
 #.PEGAR_AQUI_EL_TOKEN_COMPLETO
 
 
