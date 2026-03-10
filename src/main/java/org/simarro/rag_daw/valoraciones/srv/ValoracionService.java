@@ -7,9 +7,12 @@ import org.simarro.rag_daw.valoraciones.model.dto.ValoracionDTO;
 import org.simarro.rag_daw.valoraciones.model.dto.ValoracionResumenDTO;
 
 public interface ValoracionService {
-    ValoracionDTO crearOActualizar(ValoracionCreateDTO dto, String emailUsuario);
-    List<ValoracionDTO> findByMensajeId(Long mensajeId);
+
+    ValoracionDTO crearValoracion(ValoracionCreateDTO dto, String emailUsuario);
+
+    List<ValoracionDTO> getValoracionesMensaje(Long mensajeId);
+
     ValoracionResumenDTO getResumenConversacion(Long conversacionId);
-    void eliminar(Long id, String emailUsuario);
-    List<ValoracionDTO> findByConversacionId(Long conversacionId);
+
+    void eliminarValoracion(Long id, String emailUsuario);
 }
