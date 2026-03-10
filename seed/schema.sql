@@ -194,3 +194,29 @@ CREATE TABLE IF NOT EXISTS usuarios_roles (
     REFERENCES roles (id) ON DELETE CASCADE
 );
 
+-- TABLAS DE DOCUMENTOS (Equipo 1)
+CREATE TABLE IF NOT EXISTS secciones_tematicas (
+  id          BIGSERIAL PRIMARY KEY,
+  nombre      VARCHAR(100) NOT NULL UNIQUE,
+  descripcion VARCHAR(500),
+  codigo_color VARCHAR(7)
+);
+
+CREATE TABLE IF NOT EXISTS documentos (
+  id                  BIGSERIAL PRIMARY KEY,
+  nombre_fichero      VARCHAR(255) NOT NULL,
+  content_type        VARCHAR(100),
+  size_bytes          BIGINT,
+  descripcion         VARCHAR(500),
+  base64_contenido    TEXT,
+  seccion_tematica_id BIGINT REFERENCES secciones_tematicas(id),
+  subido_por          VARCHAR(255) NOT NULL,
+  estado              VARCHAR(50) NOT NULL DEFAULT 'PENDIENTE'
+                      CHECK (estado IN ('PENDIENTE','PROCESANDO','PROCESADO','ERROR','ELIMINADO')),
+  fecha_subida        TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_documentos_estado ON documentos(estado);
+CREATE INDEX IF NOT EXISTS idx_documentos_seccion ON documentos(seccion_tematica_id);
+CREATE INDEX IF NOT EXISTS idx_documentos_subido_por ON documentos(subido_por);
+
