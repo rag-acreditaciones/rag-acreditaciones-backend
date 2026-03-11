@@ -11,7 +11,8 @@ import lombok.Data;
     @UniqueConstraint(columnNames = {"mensaje_id", "usuario_id"})
 })
 public class ValoracionDb {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id 
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
     @Column(name = "mensaje_id", nullable = false)
@@ -27,6 +28,7 @@ public class ValoracionDb {
     private String comentario;
     
     @CreationTimestamp
+    @Column(name = "fecha_creacion", nullable = false)  // AÑADE ESTO
     private LocalDateTime fechaCreacion;
     
     public enum TipoValoracion { POSITIVA, NEGATIVA }
