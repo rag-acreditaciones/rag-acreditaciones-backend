@@ -194,6 +194,25 @@ CREATE TABLE IF NOT EXISTS usuarios_roles (
     REFERENCES roles (id) ON DELETE CASCADE
 );
 
+-- Tabla para las Conversaciones
+CREATE TABLE conversaciones (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    usuario_id BIGINT NOT NULL,
+    titulo VARCHAR(255) NOT NULL DEFAULT 'Nueva conversación',
+    seccion_tematica VARCHAR(255),
+    estado VARCHAR(50) NOT NULL DEFAULT 'ACTIVA',
+    fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabla para los Mensajes
+CREATE TABLE mensajes (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    conversacion_id BIGINT NOT NULL,
+    tipo VARCHAR(50) NOT NULL, 
+    contenido TEXT NOT NULL,
+    chunks_utilizados JSON, 
+    fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+);
 -- TABLAS DE DOCUMENTOS (Equipo 1)
 CREATE TABLE IF NOT EXISTS secciones_tematicas (
   id          BIGSERIAL PRIMARY KEY,
