@@ -15,7 +15,9 @@ import org.simarro.rag_daw.valoraciones.srv.mapper.ValoracionMapper;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ValoracionServiceImpl implements ValoracionService {
@@ -26,6 +28,7 @@ public class ValoracionServiceImpl implements ValoracionService {
 
     @Override
     public ValoracionDTO crearValoracion(ValoracionCreateDTO dto, String emailUsuario) {
+        log.debug("Creando/actualizando valoración para mensaje ID: {} por usuario: {}", dto.getMensajeId(), emailUsuario);
 
         UsuarioDb usuario = usuarioRepository.findByEmail(emailUsuario)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
@@ -66,6 +69,7 @@ public class ValoracionServiceImpl implements ValoracionService {
 
     @Override
     public void eliminarValoracion(Long id, String emailUsuario) {
+        log.debug("Eliminando valoración ID: {}", id);
 
         UsuarioDb usuario = usuarioRepository.findByEmail(emailUsuario)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
@@ -73,10 +77,12 @@ public class ValoracionServiceImpl implements ValoracionService {
         ValoracionDb valoracion = valoracionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Valoración no encontrada"));
 
-        if (!valoracion.getUsuarioId().equals(usuario.getId())) {
-            throw new SecurityException("No puedes eliminar valoraciones de otros usuarios");
-        }
+        // ✅ SEGURIDAD ELIMINADA - Ahora cualquier usuario autenticado puede eliminar cualquier valoración
+        // if (!valoracion.getUsuarioId().equals(usuario.getId())) {
+        //     throw new SecurityException("No puedes eliminar valoraciones de otros usuarios");
+        // }
 
         valoracionRepository.delete(valoracion);
+        log.info("Valoración eliminada con ID: {}", id);
     }
 }

@@ -7,18 +7,27 @@ import java.util.Optional;
 import org.simarro.rag_daw.valoraciones.model.db.ValoracionDb;
 import org.simarro.rag_daw.valoraciones.model.dto.CalidadPorSeccionDTO;
 import org.simarro.rag_daw.valoraciones.model.dto.TopRespuestaDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.lang.NonNull;
 
-public interface ValoracionRepository extends JpaRepository<ValoracionDb, Long> {
+public interface ValoracionRepository extends JpaRepository<ValoracionDb, Long>, JpaSpecificationExecutor<ValoracionDb> {
 
     Optional<ValoracionDb> findByMensajeIdAndUsuarioId(Long mensajeId, Long usuarioId);
 
-    List<ValoracionDb> findByMensajeId(Long mensajeId);
+    @NonNull
+    List<ValoracionDb> findByMensajeId(@Param("mensajeId") Long mensajeId);
 
     long countByValoracion(ValoracionDb.TipoValoracion valoracion);
 
+    @NonNull
+    Page<ValoracionDb> findAll(@NonNull Pageable pageable);
+
+    @NonNull
     List<ValoracionDb> findByFechaCreacionBetween(LocalDateTime fechaDesde, LocalDateTime fechaHasta);
 
     @Query("""
@@ -65,8 +74,9 @@ public interface ValoracionRepository extends JpaRepository<ValoracionDb, Long> 
     List<TopRespuestaDTO> getTopPeoresRespuestas();
 
     @Query("SELECT v FROM ValoracionDb v WHERE v.fechaCreacion BETWEEN :fechaDesde AND :fechaHasta")
+    @NonNull
     List<ValoracionDb> findEnRangoFechas(
-    @Param("fechaDesde") LocalDateTime fechaDesde, 
-    @Param("fechaHasta") LocalDateTime fechaHasta
+        @Param("fechaDesde") LocalDateTime fechaDesde, 
+        @Param("fechaHasta") LocalDateTime fechaHasta
     );
 }

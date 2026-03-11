@@ -12,6 +12,7 @@ import org.simarro.rag_daw.valoraciones.model.dto.ReporteEstadoDTO;
 import org.simarro.rag_daw.valoraciones.srv.ReporteService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,7 +24,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/reportes")
 @RequiredArgsConstructor
@@ -47,9 +50,9 @@ public class ReporteController {
                 content = @Content(schema = @Schema(implementation = Mensaje.class))),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> crearReporte(
-            @Valid
-            @RequestBody
+            @Valid @RequestBody
             @Parameter(description = "Datos del reporte: mensajeId, motivo, descripcion")
             ReporteCreateDTO dto,
             Principal principal) {
@@ -79,6 +82,7 @@ public class ReporteController {
         @ApiResponse(responseCode = "401", description = "No autorizado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> listarReportes(
             @RequestParam(required = false)
             @Parameter(description = "Estado del reporte", example = "PENDIENTE")
@@ -121,12 +125,12 @@ public class ReporteController {
         @ApiResponse(responseCode = "401", description = "No autorizado"),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> cambiarEstado(
             @PathVariable
             @Parameter(description = "ID del reporte", example = "1")
             Long id,
-            @Valid
-            @RequestBody
+            @Valid @RequestBody
             @Parameter(description = "Nuevo estado del reporte")
             ReporteEstadoDTO dto) {
         try {
@@ -153,24 +157,19 @@ public class ReporteController {
                 content = @Content(schema = @Schema(implementation = Mensaje.class))),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> eliminarReporte(
             @PathVariable
             @Parameter(description = "ID del reporte", example = "1")
             Long id) {
 
         try {
-
             reporteService.eliminarReporte(id);
-
             return ResponseEntity.noContent().build();
-
         } catch (ResourceNotFoundException e) {
-
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(new Mensaje(e.getMessage()));
-
         } catch (Exception e) {
-
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new Mensaje("Error al eliminar el reporte: " + e.getMessage()));
         }

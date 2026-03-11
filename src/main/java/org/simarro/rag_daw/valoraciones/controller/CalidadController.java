@@ -10,6 +10,7 @@ import org.simarro.rag_daw.valoraciones.model.dto.TopRespuestaDTO;
 import org.simarro.rag_daw.valoraciones.srv.CalidadService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,7 +21,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/calidad")
 @RequiredArgsConstructor
@@ -40,6 +43,7 @@ public class CalidadController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor",
                 content = @Content(schema = @Schema(implementation = Mensaje.class)))
     })
+    @PreAuthorize("permitAll()")
     public ResponseEntity<?> getResumen() {
         try {
             CalidadResumenDTO resumen = calidadService.getResumen();
@@ -61,6 +65,7 @@ public class CalidadController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor",
                 content = @Content(schema = @Schema(implementation = Mensaje.class)))
     })
+    @PreAuthorize("permitAll()")
     public ResponseEntity<?> getCalidadPorSeccion() {
         try {
             List<CalidadPorSeccionDTO> result = calidadService.getCalidadPorSeccion();
@@ -84,6 +89,7 @@ public class CalidadController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor",
                 content = @Content(schema = @Schema(implementation = Mensaje.class)))
     })
+    @PreAuthorize("permitAll()")
     public ResponseEntity<?> getTopRespuestas(
             @RequestParam(defaultValue = "MEJOR")
             @Parameter(description = "Tipo de ranking: MEJOR o PEOR", example = "MEJOR")
@@ -115,6 +121,7 @@ public class CalidadController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor",
                 content = @Content(schema = @Schema(implementation = Mensaje.class)))
     })
+    @PreAuthorize("permitAll()")
     public ResponseEntity<?> getEvolucion(
             @RequestParam
             @Parameter(description = "Fecha inicial", example = "2025-01-01")

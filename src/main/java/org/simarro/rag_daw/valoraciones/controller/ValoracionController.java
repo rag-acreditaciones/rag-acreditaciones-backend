@@ -23,7 +23,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/valoraciones")
 @RequiredArgsConstructor
@@ -32,7 +34,6 @@ public class ValoracionController {
 
     private final ValoracionService valoracionService;
 
-    @PostMapping
     @Operation(
         summary = "Crear o actualizar una valoración",
         description = "Crea una nueva valoración o actualiza la existente si el usuario ya había valorado ese mensaje"
@@ -48,12 +49,15 @@ public class ValoracionController {
         @ApiResponse(responseCode = "500", description = "Error interno del servidor",
                 content = @Content(schema = @Schema(implementation = Mensaje.class)))
     })
+    @PostMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> crearValoracion(
-            @Valid
-            @RequestBody
+            @Valid @RequestBody
             @Parameter(description = "Datos de la valoración")
             ValoracionCreateDTO dto,
             Principal principal) {
+
+        log.debug("Creando valoración para mensaje ID: {}", dto.getMensajeId());
 
         try {
             ValoracionDTO result = valoracionService.crearValoracion(dto, principal.getName());
@@ -90,6 +94,8 @@ public class ValoracionController {
             Long mensajeId,
             Principal principal) {
 
+        log.debug("Obteniendo valoraciones para mensaje ID: {}", mensajeId);
+
         try {
             List<ValoracionDTO> result = valoracionService.getValoracionesMensaje(mensajeId);
             return ResponseEntity.ok(result);
@@ -118,6 +124,8 @@ public class ValoracionController {
             Long conversacionId,
             Principal principal) {
 
+        log.debug("Obteniendo resumen para conversación ID: {}", conversacionId);
+
         try {
             ValoracionResumenDTO result = valoracionService.getResumenConversacion(conversacionId);
             return ResponseEntity.ok(result);
@@ -140,7 +148,6 @@ public class ValoracionController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "Valoración eliminada correctamente"),
         @ApiResponse(responseCode = "401", description = "No autorizado"),
-        @ApiResponse(responseCode = "403", description = "Prohibido"),
         @ApiResponse(responseCode = "404", description = "Valoración no encontrada",
                 content = @Content(schema = @Schema(implementation = Mensaje.class))),
         @ApiResponse(responseCode = "500", description = "Error interno del servidor",
@@ -152,12 +159,11 @@ public class ValoracionController {
             Long id,
             Principal principal) {
 
+        log.debug("Eliminando valoración ID: {}", id);
+
         try {
             valoracionService.eliminarValoracion(id, principal.getName());
             return ResponseEntity.noContent().build();
-
-        } catch (SecurityException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Mensaje(e.getMessage()));
 
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Mensaje(e.getMessage()));
