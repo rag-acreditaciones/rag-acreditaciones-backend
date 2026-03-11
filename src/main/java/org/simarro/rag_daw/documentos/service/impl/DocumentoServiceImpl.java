@@ -1,11 +1,12 @@
 package org.simarro.rag_daw.documentos.service.impl;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.simarro.rag_daw.documentos.model.db.DocumentoDb;
 import org.simarro.rag_daw.documentos.model.db.SeccionTematicaDb;
 import org.simarro.rag_daw.documentos.model.dto.DocumentoDetailDTO;
@@ -20,11 +21,14 @@ import org.simarro.rag_daw.exception.FiltroException;
 import org.simarro.rag_daw.exception.ResourceNotFoundException;
 import org.simarro.rag_daw.helper.PaginationFactory;
 import org.simarro.rag_daw.helper.PeticionListadoFiltradoConverter;
+import org.simarro.rag_daw.model.dto.FiltroBusqueda;
 import org.simarro.rag_daw.model.dto.PaginaResponse;
 import org.simarro.rag_daw.model.dto.PeticionListadoFiltrado;
 import org.simarro.rag_daw.rag.model.dto.DocumentoMetadataDTO;
 import org.simarro.rag_daw.rag.srv.IngestaService;
 import org.simarro.rag_daw.srv.specification.FiltroBusquedaSpecification;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -111,8 +115,49 @@ public class DocumentoServiceImpl implements DocumentoService {
             PeticionListadoFiltrado peticion = peticionConverter.convertFromParams(filter, page, size, sort);
             Pageable pageable = paginationFactory.createPageable(peticion);
 
-            Specification<DocumentoDb> spec = new FiltroBusquedaSpecification<>(
-                    peticion.getListaFiltros());
+            // Separar filtros especiales (join, enum) de los genéricos
+            List<FiltroBusqueda> filtrosGenericos = new ArrayList<>();
+            Specification<DocumentoDb> spec = Specification.where(null);
+
+            for (FiltroBusqueda filtro : peticion.getListaFiltros()) {
+                String attr = filtro.getAtributo();
+                String val = filtro.getValor() == null ? null : filtro.getValor().toString();
+
+                if (val == null || "null".equalsIgnoreCase(val) || val.isBlank()) {
+                    continue;
+                }
+
+                if ("seccionId".equals(attr)) {
+                    Long seccionIdVal = Long.parseLong(val);
+                    spec = spec.and((root, query, cb) -> cb.equal(root.get("seccionTematica").get("id"), seccionIdVal));
+                } else if ("estado".equals(attr)) {
+                    EstadoDocumento estadoVal = EstadoDocumento.valueOf(val);
+                    spec = spec.and((root, query, cb) -> cb.equal(root.get("estado"), estadoVal));
+                } else if ("nombre".equals(attr)) {
+                    filtro.setAtributo("nombreFichero");
+                    filtrosGenericos.add(filtro);
+                } else if ("fechaSubida".equals(attr)) {
+                    LocalDateTime dateVal = val.length() <= 10
+                            ? LocalDate.parse(val).atStartOfDay()
+                            : LocalDateTime.parse(val);
+                    spec = spec.and((root, query, cb) -> {
+                        switch (filtro.getOperacion()) {
+                            case MAYOR_QUE:
+                                return cb.greaterThanOrEqualTo(root.get("fechaSubida"), dateVal);
+                            case MENOR_QUE:
+                                return cb.lessThanOrEqualTo(root.get("fechaSubida"), dateVal);
+                            default:
+                                return cb.equal(root.get("fechaSubida"), dateVal);
+                        }
+                    });
+                } else {
+                    filtrosGenericos.add(filtro);
+                }
+            }
+
+            if (!filtrosGenericos.isEmpty()) {
+                spec = spec.and(new FiltroBusquedaSpecification<>(filtrosGenericos));
+            }
 
             Page<DocumentoDb> resultado = documentoRepository.findAll(spec, pageable);
 
@@ -121,6 +166,9 @@ public class DocumentoServiceImpl implements DocumentoService {
                     peticion.getListaFiltros(),
                     peticion.getSort());
 
+        } catch (IllegalArgumentException e) {
+            throw new FiltroException("BAD_FILTER_VALUE",
+                    "Error: Valor de filtro no valido", e.getMessage());
         } catch (JpaSystemException e) {
             String cause = (e.getRootCause() != null && e.getRootCause().getMessage() != null)
                     ? e.getRootCause().getMessage()
