@@ -1,5 +1,8 @@
 package org.simarro.rag_daw.documentos.controller;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.simarro.rag_daw.documentos.model.dto.DocumentoDetailDTO;
 import org.simarro.rag_daw.documentos.model.dto.DocumentoResponseDTO;
 import org.simarro.rag_daw.documentos.model.dto.DocumentoUploadDTO;
@@ -46,10 +49,43 @@ public class DocumentoController {
     @GetMapping
     public ResponseEntity<PaginaResponse<DocumentoResponseDTO>> listarDocumentos(
             @RequestParam(required = false) String[] filter,
+            @RequestParam(required = false) Long seccionId,
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) String nombre,
+            @RequestParam(required = false) String subidoPor,
+            @RequestParam(required = false) String fechaDesde,
+            @RequestParam(required = false) String fechaHasta,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "fechaSubida,desc") String[] sort) throws FiltroException {
-        return ResponseEntity.ok(documentoService.findAll(filter, page, size, sort));
+
+        List<String> allFilters = new ArrayList<>();
+        if (filter != null) {
+            for (String f : filter) {
+                allFilters.add(f);
+            }
+        }
+        if (seccionId != null) {
+            allFilters.add("seccionId:IGUAL:" + seccionId);
+        }
+        if (estado != null) {
+            allFilters.add("estado:IGUAL:" + estado);
+        }
+        if (nombre != null) {
+            allFilters.add("nombre:CONTIENE:" + nombre);
+        }
+        if (subidoPor != null) {
+            allFilters.add("subidoPor:CONTIENE:" + subidoPor);
+        }
+        if (fechaDesde != null) {
+            allFilters.add("fechaSubida:MAYOR_QUE:" + fechaDesde);
+        }
+        if (fechaHasta != null) {
+            allFilters.add("fechaSubida:MENOR_QUE:" + fechaHasta);
+        }
+
+        String[] mergedFilters = allFilters.isEmpty() ? null : allFilters.toArray(new String[0]);
+        return ResponseEntity.ok(documentoService.findAll(mergedFilters, page, size, sort));
     }
 
     @GetMapping("/{id}")
