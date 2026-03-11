@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Base64;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.simarro.rag_daw.documentos.model.db.DocumentoDb;
 import org.simarro.rag_daw.documentos.model.db.SeccionTematicaDb;
 import org.simarro.rag_daw.documentos.model.dto.DocumentoDetailDTO;
@@ -38,6 +40,7 @@ import jakarta.persistence.EntityNotFoundException;
 @Service
 public class DocumentoServiceImpl implements DocumentoService {
 
+    private static final Logger log = LoggerFactory.getLogger(DocumentoServiceImpl.class);
     private static final String CONTENT_TYPE_PDF = "application/pdf";
     private static final long MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB
 
@@ -193,6 +196,7 @@ public class DocumentoServiceImpl implements DocumentoService {
             saved.setEstado(EstadoDocumento.PROCESADO);
             documentoRepository.save(saved);
         } catch (Exception e) {
+            log.error("Error en la ingesta del documento id={}: {}", saved.getId(), e.getMessage(), e);
             saved.setEstado(EstadoDocumento.ERROR);
             documentoRepository.save(saved);
         }
