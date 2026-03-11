@@ -118,6 +118,7 @@ public class DocumentoServiceImpl implements DocumentoService {
             // Separar filtros especiales (join, enum) de los genéricos
             List<FiltroBusqueda> filtrosGenericos = new ArrayList<>();
             Specification<DocumentoDb> spec = Specification.where(null);
+            boolean tieneFiltoEstado = false;
 
             for (FiltroBusqueda filtro : peticion.getListaFiltros()) {
                 String attr = filtro.getAtributo();
@@ -131,6 +132,7 @@ public class DocumentoServiceImpl implements DocumentoService {
                     Long seccionIdVal = Long.parseLong(val);
                     spec = spec.and((root, query, cb) -> cb.equal(root.get("seccionTematica").get("id"), seccionIdVal));
                 } else if ("estado".equals(attr)) {
+                    tieneFiltoEstado = true;
                     EstadoDocumento estadoVal = EstadoDocumento.valueOf(val);
                     spec = spec.and((root, query, cb) -> cb.equal(root.get("estado"), estadoVal));
                 } else if ("nombre".equals(attr)) {
@@ -157,6 +159,12 @@ public class DocumentoServiceImpl implements DocumentoService {
 
             if (!filtrosGenericos.isEmpty()) {
                 spec = spec.and(new FiltroBusquedaSpecification<>(filtrosGenericos));
+            }
+
+            // Excluir documentos ELIMINADOS por defecto
+            if (!tieneFiltoEstado) {
+                spec = spec.and((root, query, cb) ->
+                        cb.notEqual(root.get("estado"), EstadoDocumento.ELIMINADO));
             }
 
             Page<DocumentoDb> resultado = documentoRepository.findAll(spec, pageable);
