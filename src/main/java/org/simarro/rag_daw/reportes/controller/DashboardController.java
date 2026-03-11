@@ -104,9 +104,7 @@ public class DashboardController {
      */
     @GetMapping("/chats/por-seccion")
     public ResponseEntity<?> getChatsPorSeccion() {
-        // TODO ALUMNO: dashboardService.getChatsPorSeccion()
-        throw new UnsupportedOperationException(
-            "GET /api/v1/dashboard/chats/por-seccion — No implementado (Equipo 5)");
+        return ResponseEntity.ok(dashboardService.getChatsPorSeccion());
     }
 
     /**
@@ -118,9 +116,7 @@ public class DashboardController {
     public ResponseEntity<?> getActividadDiaria(
             @RequestParam String fechaDesde,
             @RequestParam String fechaHasta) {
-        // TODO ALUMNO: dashboardService.getActividadDiaria(fechaDesde, fechaHasta)
-        throw new UnsupportedOperationException(
-            "GET /api/v1/dashboard/chats/actividad-diaria — No implementado (Equipo 5)");
+        return ResponseEntity.ok(dashboardService.getActividadDiaria(fechaDesde, fechaHasta));
     }
 
     /**
@@ -130,9 +126,7 @@ public class DashboardController {
      */
     @GetMapping("/chats/horas-punta")
     public ResponseEntity<?> getHorasPunta() {
-        // TODO ALUMNO: dashboardService.getHorasPunta()
-        throw new UnsupportedOperationException(
-            "GET /api/v1/dashboard/chats/horas-punta — No implementado (Equipo 5)");
+        return ResponseEntity.ok(dashboardService.getHorasPunta());
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -148,9 +142,7 @@ public class DashboardController {
     public ResponseEntity<?> getRankingUsuarios(
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(defaultValue = "TOTAL") String criterio) {
-        // TODO ALUMNO: dashboardService.getRankingUsuarios(limit, criterio)
-        throw new UnsupportedOperationException(
-            "GET /api/v1/dashboard/usuarios/ranking — No implementado (Equipo 5)");
+        return ResponseEntity.ok(dashboardService.getRankingUsuarios(limit, criterio));
     }
 
     /**
@@ -177,8 +169,6 @@ public class DashboardController {
      */
     @GetMapping("/actividad-reciente")
     public ResponseEntity<?> getActividadReciente() {
-        // TODO ALUMNO: dashboardService.getActividadReciente()
-        throw new UnsupportedOperationException(
-            "GET /api/v1/dashboard/actividad-reciente — No implementado (Equipo 5)");
+        return ResponseEntity.ok(dashboardService.getActividadReciente());
     }
 }
