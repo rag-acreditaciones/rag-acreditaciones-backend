@@ -19,4 +19,6 @@ public interface ReporteService {
     ) throws FiltroException;
 
     ReporteDTO cambiarEstado(Long id, ReporteEstadoDTO dto);
+
+    void eliminarReporte(Long id);
 }

@@ -1,9 +1,11 @@
 package org.simarro.rag_daw.valoraciones.srv.impl;
 
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+
 import org.simarro.rag_daw.exception.ResourceNotFoundException;
 import org.simarro.rag_daw.model.db.UsuarioDb;
 import org.simarro.rag_daw.repository.UsuarioRepository;
+import org.simarro.rag_daw.valoraciones.srv.mapper.ValoracionMapper;
 import org.simarro.rag_daw.valoraciones.model.db.ValoracionDb;
 import org.simarro.rag_daw.valoraciones.model.dto.ValoracionCreateDTO;
 import org.simarro.rag_daw.valoraciones.model.dto.ValoracionDTO;
@@ -12,8 +14,7 @@ import org.simarro.rag_daw.valoraciones.repository.ValoracionRepository;
 import org.simarro.rag_daw.valoraciones.srv.ValoracionService;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -21,16 +22,19 @@ public class ValoracionServiceImpl implements ValoracionService {
 
     private final ValoracionRepository valoracionRepository;
     private final UsuarioRepository usuarioRepository;
+    private final ValoracionMapper valoracionMapper;
 
     @Override
     public ValoracionDTO crearValoracion(ValoracionCreateDTO dto, String emailUsuario) {
+
         UsuarioDb usuario = usuarioRepository.findByEmail(emailUsuario)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
         ValoracionDb.TipoValoracion tipoValoracion;
+
         try {
             tipoValoracion = ValoracionDb.TipoValoracion.valueOf(dto.getValoracion().toUpperCase());
-        } catch (IllegalArgumentException | NullPointerException e) {
+        } catch (Exception e) {
             throw new IllegalArgumentException("La valoración debe ser POSITIVA o NEGATIVA");
         }
 
@@ -43,18 +47,21 @@ public class ValoracionServiceImpl implements ValoracionService {
         valoracion.setValoracion(tipoValoracion);
         valoracion.setComentario(dto.getComentario());
 
-        return mapToDTO(valoracionRepository.save(valoracion));
+        return valoracionMapper.toDTO(valoracionRepository.save(valoracion));
     }
 
     @Override
     public List<ValoracionDTO> getValoracionesMensaje(Long mensajeId) {
-        return valoracionRepository.findByMensajeId(mensajeId).stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+
+        return valoracionRepository.findByMensajeId(mensajeId)
+                .stream()
+                .map(valoracionMapper::toDTO)
+                .toList();
     }
 
     @Override
     public ValoracionResumenDTO getResumenConversacion(Long conversacionId) {
+
         List<ValoracionDb> valoraciones = valoracionRepository.findByConversacionId(conversacionId);
 
         long positivas = valoraciones.stream()
@@ -62,18 +69,26 @@ public class ValoracionServiceImpl implements ValoracionService {
                 .count();
 
         long negativas = valoraciones.size() - positivas;
+
         long total = valoraciones.size();
+
         double ratio = total == 0 ? 0.0 : (double) positivas / total;
 
         List<ValoracionDTO> detalles = valoraciones.stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+                .map(valoracionMapper::toDTO)
+                .toList();
 
-        return new ValoracionResumenDTO(positivas, negativas, ratio, detalles);
+        return new ValoracionResumenDTO(
+                positivas,
+                negativas,
+                ratio,
+                detalles
+        );
     }
 
     @Override
     public void eliminarValoracion(Long id, String emailUsuario) {
+
         UsuarioDb usuario = usuarioRepository.findByEmail(emailUsuario)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
@@ -85,16 +100,5 @@ public class ValoracionServiceImpl implements ValoracionService {
         }
 
         valoracionRepository.delete(valoracion);
-    }
-
-    private ValoracionDTO mapToDTO(ValoracionDb entity) {
-        return new ValoracionDTO(
-                entity.getId(),
-                entity.getMensajeId(),
-                entity.getUsuarioId(),
-                entity.getValoracion().name(),
-                entity.getComentario(),
-                entity.getFechaCreacion()
-        );
     }
 }

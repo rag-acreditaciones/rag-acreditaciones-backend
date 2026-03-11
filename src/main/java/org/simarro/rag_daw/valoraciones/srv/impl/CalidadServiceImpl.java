@@ -54,33 +54,17 @@ public class CalidadServiceImpl implements CalidadService {
 
     @Override
     public List<CalidadPorSeccionDTO> getCalidadPorSeccion() {
-
         return valoracionRepository.getCalidadPorSeccion();
     }
 
     @Override
     public List<TopRespuestaDTO> getTopRespuestas(String tipo, int limit) {
 
-        String tipoNormalizado = tipo == null
-                ? "MEJOR"
-                : tipo.trim().toUpperCase();
-
-        if (!tipoNormalizado.equals("MEJOR") &&
-            !tipoNormalizado.equals("PEOR")) {
-            throw new IllegalArgumentException(
-                    "El tipo debe ser MEJOR o PEOR");
+        if ("PEOR".equalsIgnoreCase(tipo)) {
+            return valoracionRepository.getTopPeoresRespuestas(limit);
         }
 
-        if (limit <= 0) {
-            throw new IllegalArgumentException(
-                    "El límite debe ser mayor que 0");
-        }
-
-        if (tipoNormalizado.equals("MEJOR")) {
-            return valoracionRepository.getTopMejoresRespuestas(limit);
-        }
-
-        return valoracionRepository.getTopPeoresRespuestas(limit);
+        return valoracionRepository.getTopMejoresRespuestas(limit);
     }
 
     @Override
@@ -89,25 +73,10 @@ public class CalidadServiceImpl implements CalidadService {
             String fechaHasta,
             String agrupacion) {
 
-        if (fechaDesde == null || fechaHasta == null || agrupacion == null) {
-            throw new IllegalArgumentException(
-                    "fechaDesde, fechaHasta y agrupacion son obligatorios");
-        }
-
-        String agrupacionNormalizada = agrupacion.trim().toUpperCase();
-
-        if (!agrupacionNormalizada.equals("DIA") &&
-            !agrupacionNormalizada.equals("SEMANA") &&
-            !agrupacionNormalizada.equals("MES")) {
-
-            throw new IllegalArgumentException(
-                    "La agrupación debe ser DIA, SEMANA o MES");
-        }
-
         return valoracionRepository.getEvolucionCalidad(
                 fechaDesde,
                 fechaHasta,
-                agrupacionNormalizada
+                agrupacion
         );
     }
 }

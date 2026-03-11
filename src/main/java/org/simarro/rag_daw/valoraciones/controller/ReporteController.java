@@ -141,4 +141,38 @@ public class ReporteController {
                     .body(new Mensaje("Error al cambiar el estado del reporte: " + e.getMessage()));
         }
     }
+
+    @DeleteMapping("/{id}")
+    @Operation(
+        summary = "Eliminar un reporte",
+        description = "Elimina un reporte del sistema"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Reporte eliminado correctamente"),
+        @ApiResponse(responseCode = "404", description = "Reporte no encontrado",
+                content = @Content(schema = @Schema(implementation = Mensaje.class))),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
+    public ResponseEntity<?> eliminarReporte(
+            @PathVariable
+            @Parameter(description = "ID del reporte", example = "1")
+            Long id) {
+
+        try {
+
+            reporteService.eliminarReporte(id);
+
+            return ResponseEntity.noContent().build();
+
+        } catch (ResourceNotFoundException e) {
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new Mensaje(e.getMessage()));
+
+        } catch (Exception e) {
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new Mensaje("Error al eliminar el reporte: " + e.getMessage()));
+        }
+    }
 }
