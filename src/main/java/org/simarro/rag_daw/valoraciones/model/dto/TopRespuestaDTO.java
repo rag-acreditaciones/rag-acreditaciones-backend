@@ -11,7 +11,7 @@ public class TopRespuestaDTO {
 
     private Long mensajeId;
     private String textoResumido;
-    private long valoracionesPositivas;
-    private long valoracionesNegativas;
+    private Long valoracionesPositivas;
+    private Long valoracionesNegativas;
     private Long conversacionId;
 }

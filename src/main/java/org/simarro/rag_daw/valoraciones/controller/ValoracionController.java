@@ -11,6 +11,7 @@ import org.simarro.rag_daw.valoraciones.model.dto.ValoracionResumenDTO;
 import org.simarro.rag_daw.valoraciones.srv.ValoracionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/v1/valoraciones")
 @RequiredArgsConstructor
-@Tag(name = "Valoraciones", description = "Endpoints para gestionar valoraciones de respuestas (👍/👎)")
+@Tag(name = "Valoraciones", description = "Endpoints para gestionar valoraciones de respuestas")
 public class ValoracionController {
 
     private final ValoracionService valoracionService;
@@ -39,91 +40,128 @@ public class ValoracionController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Valoración creada/actualizada correctamente",
                 content = @Content(schema = @Schema(implementation = ValoracionDTO.class))),
-        @ApiResponse(responseCode = "400", description = "Datos incorrectos o valoración no válida",
+        @ApiResponse(responseCode = "400", description = "Datos incorrectos",
                 content = @Content(schema = @Schema(implementation = Mensaje.class))),
         @ApiResponse(responseCode = "401", description = "No autorizado"),
-        @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
-        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+        @ApiResponse(responseCode = "404", description = "Usuario no encontrado",
+                content = @Content(schema = @Schema(implementation = Mensaje.class))),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor",
+                content = @Content(schema = @Schema(implementation = Mensaje.class)))
     })
     public ResponseEntity<?> crearValoracion(
             @Valid
             @RequestBody
-            @Parameter(description = "Datos de la valoración (mensajeId, valoracion: POSITIVA/NEGATIVA, comentario opcional)")
+            @Parameter(description = "Datos de la valoración")
             ValoracionCreateDTO dto,
             Principal principal) {
+
         try {
             ValoracionDTO result = valoracionService.crearValoracion(dto, principal.getName());
             return ResponseEntity.status(HttpStatus.CREATED).body(result);
+
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(new Mensaje(e.getMessage()));
+
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Mensaje(e.getMessage()));
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new Mensaje("Error al crear la valoración: " + e.getMessage()));
         }
     }
 
-    @GetMapping("/mensaje/{msgId}")
+    @GetMapping("/mensaje/{mensajeId}")
+    @PreAuthorize("isAuthenticated()")
     @Operation(
         summary = "Obtener valoraciones de un mensaje",
-        description = "Devuelve todas las valoraciones de un mensaje específico"
+        description = "Devuelve todas las valoraciones asociadas a un mensaje concreto"
     )
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Lista de valoraciones",
+        @ApiResponse(responseCode = "200", description = "Lista de valoraciones obtenida correctamente",
                 content = @Content(schema = @Schema(implementation = ValoracionDTO.class))),
         @ApiResponse(responseCode = "401", description = "No autorizado"),
-        @ApiResponse(responseCode = "404", description = "Mensaje no encontrado")
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor",
+                content = @Content(schema = @Schema(implementation = Mensaje.class)))
     })
-    public ResponseEntity<List<ValoracionDTO>> getValoracionesMensaje(
+    public ResponseEntity<?> getValoracionesMensaje(
             @PathVariable
             @Parameter(description = "ID del mensaje", example = "2")
-            Long msgId) {
-        return ResponseEntity.ok(valoracionService.getValoracionesMensaje(msgId));
+            Long mensajeId,
+            Principal principal) {
+
+        try {
+            List<ValoracionDTO> result = valoracionService.getValoracionesMensaje(mensajeId);
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new Mensaje("Error al obtener las valoraciones del mensaje: " + e.getMessage()));
+        }
     }
 
-    @GetMapping("/conversacion/{convId}")
+    @GetMapping("/conversacion/{conversacionId}")
     @Operation(
         summary = "Obtener resumen de valoraciones de una conversación",
-        description = "Devuelve un resumen con totales positivas, negativas y ratio de una conversación"
+        description = "Devuelve el resumen de valoraciones asociadas a una conversación"
     )
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Resumen de valoraciones",
+        @ApiResponse(responseCode = "200", description = "Resumen obtenido correctamente",
                 content = @Content(schema = @Schema(implementation = ValoracionResumenDTO.class))),
         @ApiResponse(responseCode = "401", description = "No autorizado"),
-        @ApiResponse(responseCode = "404", description = "Conversación no encontrada")
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor",
+                content = @Content(schema = @Schema(implementation = Mensaje.class)))
     })
-    public ResponseEntity<ValoracionResumenDTO> getResumenConversacion(
+    public ResponseEntity<?> getResumenConversacion(
             @PathVariable
             @Parameter(description = "ID de la conversación", example = "1")
-            Long convId) {
-        return ResponseEntity.ok(valoracionService.getResumenConversacion(convId));
+            Long conversacionId,
+            Principal principal) {
+
+        try {
+            ValoracionResumenDTO result = valoracionService.getResumenConversacion(conversacionId);
+            return ResponseEntity.ok(result);
+
+        } catch (UnsupportedOperationException e) {
+            return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
+                    .body(new Mensaje(e.getMessage()));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new Mensaje("Error al obtener el resumen de la conversación: " + e.getMessage()));
+        }
     }
 
     @DeleteMapping("/{id}")
     @Operation(
-        summary = "Eliminar una valoración",
-        description = "Elimina la valoración del usuario autenticado (solo puede eliminar las suyas)"
+        summary = "Eliminar mi valoración",
+        description = "Elimina una valoración del usuario autenticado"
     )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "Valoración eliminada correctamente"),
         @ApiResponse(responseCode = "401", description = "No autorizado"),
-        @ApiResponse(responseCode = "403", description = "No puedes eliminar valoraciones de otros usuarios"),
-        @ApiResponse(responseCode = "404", description = "Valoración no encontrada"),
-        @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+        @ApiResponse(responseCode = "403", description = "Prohibido"),
+        @ApiResponse(responseCode = "404", description = "Valoración no encontrada",
+                content = @Content(schema = @Schema(implementation = Mensaje.class))),
+        @ApiResponse(responseCode = "500", description = "Error interno del servidor",
+                content = @Content(schema = @Schema(implementation = Mensaje.class)))
     })
     public ResponseEntity<?> eliminarValoracion(
             @PathVariable
             @Parameter(description = "ID de la valoración", example = "1")
             Long id,
             Principal principal) {
+
         try {
             valoracionService.eliminarValoracion(id, principal.getName());
             return ResponseEntity.noContent().build();
+
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new Mensaje(e.getMessage()));
+
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Mensaje(e.getMessage()));
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new Mensaje("Error al eliminar la valoración: " + e.getMessage()));

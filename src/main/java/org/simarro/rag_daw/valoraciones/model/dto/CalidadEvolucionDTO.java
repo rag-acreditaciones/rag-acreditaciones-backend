@@ -12,8 +12,8 @@ import lombok.NoArgsConstructor;
 public class CalidadEvolucionDTO {
 
     private LocalDate fecha;
-    private long positivas;
-    private long negativas;
-    private double ratio;
-    private long totalReportes;
+    private Long positivas;
+    private Long negativas;
+    private Double ratio;
+    private Long totalReportes;
 }

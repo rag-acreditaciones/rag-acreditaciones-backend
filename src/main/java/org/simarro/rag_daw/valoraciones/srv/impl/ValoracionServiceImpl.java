@@ -5,13 +5,13 @@ import java.util.List;
 import org.simarro.rag_daw.exception.ResourceNotFoundException;
 import org.simarro.rag_daw.model.db.UsuarioDb;
 import org.simarro.rag_daw.repository.UsuarioRepository;
-import org.simarro.rag_daw.valoraciones.srv.mapper.ValoracionMapper;
 import org.simarro.rag_daw.valoraciones.model.db.ValoracionDb;
 import org.simarro.rag_daw.valoraciones.model.dto.ValoracionCreateDTO;
 import org.simarro.rag_daw.valoraciones.model.dto.ValoracionDTO;
 import org.simarro.rag_daw.valoraciones.model.dto.ValoracionResumenDTO;
 import org.simarro.rag_daw.valoraciones.repository.ValoracionRepository;
 import org.simarro.rag_daw.valoraciones.srv.ValoracionService;
+import org.simarro.rag_daw.valoraciones.srv.mapper.ValoracionMapper;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -52,7 +52,6 @@ public class ValoracionServiceImpl implements ValoracionService {
 
     @Override
     public List<ValoracionDTO> getValoracionesMensaje(Long mensajeId) {
-
         return valoracionRepository.findByMensajeId(mensajeId)
                 .stream()
                 .map(valoracionMapper::toDTO)
@@ -61,29 +60,8 @@ public class ValoracionServiceImpl implements ValoracionService {
 
     @Override
     public ValoracionResumenDTO getResumenConversacion(Long conversacionId) {
-
-        List<ValoracionDb> valoraciones = valoracionRepository.findByConversacionId(conversacionId);
-
-        long positivas = valoraciones.stream()
-                .filter(v -> v.getValoracion() == ValoracionDb.TipoValoracion.POSITIVA)
-                .count();
-
-        long negativas = valoraciones.size() - positivas;
-
-        long total = valoraciones.size();
-
-        double ratio = total == 0 ? 0.0 : (double) positivas / total;
-
-        List<ValoracionDTO> detalles = valoraciones.stream()
-                .map(valoracionMapper::toDTO)
-                .toList();
-
-        return new ValoracionResumenDTO(
-                positivas,
-                negativas,
-                ratio,
-                detalles
-        );
+        throw new UnsupportedOperationException(
+                "Pendiente de implementar cuando exista relación entre valoraciones y conversación");
     }
 
     @Override

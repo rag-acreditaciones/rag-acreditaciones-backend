@@ -9,5 +9,4 @@ public interface ReporteRepository
         JpaSpecificationExecutor<ReporteRespuestaDb> {
 
     long countByEstado(ReporteRespuestaDb.EstadoReporte estado);
-
 }

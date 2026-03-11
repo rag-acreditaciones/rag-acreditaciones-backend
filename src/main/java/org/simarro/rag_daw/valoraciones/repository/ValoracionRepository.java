@@ -1,14 +1,15 @@
 package org.simarro.rag_daw.valoraciones.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import org.simarro.rag_daw.valoraciones.model.db.ValoracionDb;
-import org.simarro.rag_daw.valoraciones.model.dto.CalidadEvolucionDTO;
 import org.simarro.rag_daw.valoraciones.model.dto.CalidadPorSeccionDTO;
 import org.simarro.rag_daw.valoraciones.model.dto.TopRespuestaDTO;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface ValoracionRepository extends JpaRepository<ValoracionDb, Long> {
 
@@ -16,18 +17,19 @@ public interface ValoracionRepository extends JpaRepository<ValoracionDb, Long> 
 
     List<ValoracionDb> findByMensajeId(Long mensajeId);
 
-    List<ValoracionDb> findByConversacionId(Long conversacionId);
-
     long countByValoracion(ValoracionDb.TipoValoracion valoracion);
 
-    // ---- CALIDAD ----
+    List<ValoracionDb> findByFechaCreacionBetween(LocalDateTime fechaDesde, LocalDateTime fechaHasta);
 
     @Query("""
         SELECT new org.simarro.rag_daw.valoraciones.model.dto.CalidadPorSeccionDTO(
             'General',
-            SUM(CASE WHEN v.valoracion='POSITIVA' THEN 1 ELSE 0 END),
-            SUM(CASE WHEN v.valoracion='NEGATIVA' THEN 1 ELSE 0 END),
-            (SUM(CASE WHEN v.valoracion='POSITIVA' THEN 1 ELSE 0 END) * 1.0) / COUNT(v),
+            SUM(CASE WHEN v.valoracion = org.simarro.rag_daw.valoraciones.model.db.ValoracionDb$TipoValoracion.POSITIVA THEN 1L ELSE 0L END),
+            SUM(CASE WHEN v.valoracion = org.simarro.rag_daw.valoraciones.model.db.ValoracionDb$TipoValoracion.NEGATIVA THEN 1L ELSE 0L END),
+            CASE
+                WHEN COUNT(v) = 0 THEN 0.0
+                ELSE 1.0 * SUM(CASE WHEN v.valoracion = org.simarro.rag_daw.valoraciones.model.db.ValoracionDb$TipoValoracion.POSITIVA THEN 1L ELSE 0L END) / COUNT(v)
+            END,
             COUNT(v)
         )
         FROM ValoracionDb v
@@ -38,44 +40,33 @@ public interface ValoracionRepository extends JpaRepository<ValoracionDb, Long> 
         SELECT new org.simarro.rag_daw.valoraciones.model.dto.TopRespuestaDTO(
             v.mensajeId,
             'Respuesta',
-            SUM(CASE WHEN v.valoracion='POSITIVA' THEN 1 ELSE 0 END),
-            SUM(CASE WHEN v.valoracion='NEGATIVA' THEN 1 ELSE 0 END),
-            0
+            SUM(CASE WHEN v.valoracion = org.simarro.rag_daw.valoraciones.model.db.ValoracionDb$TipoValoracion.POSITIVA THEN 1L ELSE 0L END),
+            SUM(CASE WHEN v.valoracion = org.simarro.rag_daw.valoraciones.model.db.ValoracionDb$TipoValoracion.NEGATIVA THEN 1L ELSE 0L END),
+            0L
         )
         FROM ValoracionDb v
         GROUP BY v.mensajeId
-        ORDER BY SUM(CASE WHEN v.valoracion='POSITIVA' THEN 1 ELSE 0 END) DESC
+        ORDER BY SUM(CASE WHEN v.valoracion = org.simarro.rag_daw.valoraciones.model.db.ValoracionDb$TipoValoracion.POSITIVA THEN 1L ELSE 0L END) DESC
         """)
-    List<TopRespuestaDTO> getTopMejoresRespuestas(int limit);
+    List<TopRespuestaDTO> getTopMejoresRespuestas();
 
     @Query("""
         SELECT new org.simarro.rag_daw.valoraciones.model.dto.TopRespuestaDTO(
             v.mensajeId,
             'Respuesta',
-            SUM(CASE WHEN v.valoracion='POSITIVA' THEN 1 ELSE 0 END),
-            SUM(CASE WHEN v.valoracion='NEGATIVA' THEN 1 ELSE 0 END),
-            0
+            SUM(CASE WHEN v.valoracion = org.simarro.rag_daw.valoraciones.model.db.ValoracionDb$TipoValoracion.POSITIVA THEN 1L ELSE 0L END),
+            SUM(CASE WHEN v.valoracion = org.simarro.rag_daw.valoraciones.model.db.ValoracionDb$TipoValoracion.NEGATIVA THEN 1L ELSE 0L END),
+            0L
         )
         FROM ValoracionDb v
         GROUP BY v.mensajeId
-        ORDER BY SUM(CASE WHEN v.valoracion='NEGATIVA' THEN 1 ELSE 0 END) DESC
+        ORDER BY SUM(CASE WHEN v.valoracion = org.simarro.rag_daw.valoraciones.model.db.ValoracionDb$TipoValoracion.NEGATIVA THEN 1L ELSE 0L END) DESC
         """)
-    List<TopRespuestaDTO> getTopPeoresRespuestas(int limit);
+    List<TopRespuestaDTO> getTopPeoresRespuestas();
 
-    @Query("""
-        SELECT new org.simarro.rag_daw.valoraciones.model.dto.CalidadEvolucionDTO(
-            DATE(v.fechaCreacion),
-            SUM(CASE WHEN v.valoracion='POSITIVA' THEN 1 ELSE 0 END),
-            SUM(CASE WHEN v.valoracion='NEGATIVA' THEN 1 ELSE 0 END),
-            (SUM(CASE WHEN v.valoracion='POSITIVA' THEN 1 ELSE 0 END) * 1.0) / COUNT(v),
-            0
-        )
-        FROM ValoracionDb v
-        GROUP BY DATE(v.fechaCreacion)
-        ORDER BY DATE(v.fechaCreacion)
-        """)
-    List<CalidadEvolucionDTO> getEvolucionCalidad(
-            String fechaDesde,
-            String fechaHasta,
-            String agrupacion);
+    @Query("SELECT v FROM ValoracionDb v WHERE v.fechaCreacion BETWEEN :fechaDesde AND :fechaHasta")
+    List<ValoracionDb> findEnRangoFechas(
+    @Param("fechaDesde") LocalDateTime fechaDesde, 
+    @Param("fechaHasta") LocalDateTime fechaHasta
+    );
 }
