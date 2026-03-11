@@ -17,6 +17,7 @@
 
 ###
 ## 1. Login OK → Copiar el token del response
+# @name login
 POST {{baseUrl}}/auth/login HTTP/1.1
 Content-Type: application/json
 
@@ -56,8 +57,10 @@ Content-Type: application/json
 }
 
 ## ─── TOKEN: Pegar aquí el token obtenido del login OK ───
-@token = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjYW5kaWRhdG9AZXhhbXBsZS5jb20iLCJpYXQiOjE3NzMwOTg1OTksImV4cCI6MTc3MzEzNDU5OX0.al3Q0ugaxcUcfk0DmXR-lj83mANnd499o-5KAoFrVVs
+# @token = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjYW5kaWRhdG9AZXhhbXBsZS5jb20iLCJpYXQiOjE3NzMxNTcxNTEsImV4cCI6MTc3MzE5MzE1MX0.4VONgd4OjNvchJ_W6V48V72VDS-ApwQgO1acWTyek_I
 #.PEGAR_AQUI_EL_TOKEN_COMPLETO
+
+@token = {{login.response.body.token}}
 
 
 ## ═══════════════════════════════════════════════════════════════════════════
@@ -114,7 +117,7 @@ Content-Type: multipart/form-data; boundary=----RagBoundary
 Content-Disposition: form-data; name="file"; filename="manual_peac.pdf"
 Content-Type: application/pdf
 
-< ./seed/pdfs/general/2023_Manual_Procedimiento_PEAC.pdf
+< ./seed/pdfs/bd/GEC_ECP0224_3.pdf
 ------RagBoundary
 Content-Disposition: form-data; name="documentoId"
 
@@ -217,10 +220,10 @@ Authorization: Bearer {{token}}
 Content-Type: multipart/form-data; boundary=----DocBoundary
 
 ------DocBoundary
-Content-Disposition: form-data; name="file"; filename="guia_candidata.pdf"
+Content-Disposition: form-data; name="file"; filename="GEC_ECP0224_3.pdf"
 Content-Type: application/pdf
 
-< ./seed/pdfs/general/2023_Guía_PersonaCandidata_PEAC.pdf
+< ./seed/pdfs/bd/GEC_ECP0224_3.pdf
 ------DocBoundary
 Content-Disposition: form-data; name="metadata"
 Content-Type: application/json
@@ -235,6 +238,7 @@ Content-Type: application/json
 ## 17. Listar documentos — paginado con filtros GET
 GET {{baseUrl}}/api/v1/documentos?page=0&size=10&sort=fechaSubida,desc HTTP/1.1
 Authorization: Bearer {{token}}
+
 
 ###
 ## 18. Listar documentos — con filtros específicos
@@ -522,7 +526,7 @@ Authorization: Bearer {{token}}
 
 ###
 ## 59. Evolución de subidas de documentos
-GET {{baseUrl}}/api/v1/dashboard/documentos/evolucion?fechaDesde=2025-01-01&fechaHasta=2025-12-31&agrupacion=SEMANA HTTP/1.1
+GET {{baseUrl}}/api/v1/dashboard/documentos/evolucion?fechaDesde=2026-01-01&fechaHasta=2026-12-31&agrupacion=SEMANA HTTP/1.1
 Authorization: Bearer {{token}}
 
 ###
