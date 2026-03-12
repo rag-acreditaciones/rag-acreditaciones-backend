@@ -5,6 +5,8 @@ import java.time.LocalDate;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -14,12 +16,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.validation.constraints.NotNull;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Data
 @NoArgsConstructor
@@ -27,7 +28,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Entity
 @Table(name = "relaciones_usuarios")
 public class RelacionUsuarioDb implements Serializable {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -43,7 +44,7 @@ public class RelacionUsuarioDb implements Serializable {
     private UsuarioDb usuarioRelacionado;
 
     @Column(name = "tipo_relacion", nullable = false)
-    @Enumerated(EnumType.STRING) //Si no por defecto seria numérico
+    @Enumerated(EnumType.STRING) // Si no por defecto seria numérico
     @NotNull(message = "El tipo de relación es obligatorio")
     private TipoRelacion tipoRelacion;
 
@@ -52,7 +53,9 @@ public class RelacionUsuarioDb implements Serializable {
     private LocalDate fechaInicio;
 
     public enum TipoRelacion {
-        @JsonProperty("supervisor-asesor") SUPERVISOR_ASESOR,
-        @JsonProperty("asesor-candidato") ASESOR_CANDIDATO
+        @JsonProperty("supervisor-asesor")
+        SUPERVISOR_ASESOR,
+        @JsonProperty("asesor-candidato")
+        ASESOR_CANDIDATO
     }
 }

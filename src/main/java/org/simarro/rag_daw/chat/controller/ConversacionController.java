@@ -2,6 +2,20 @@ package org.simarro.rag_daw.chat.controller;
 
 import java.util.Map;
 
+import org.simarro.rag_daw.model.dto.ConversacionCreateDTO;
+import org.simarro.rag_daw.model.dto.ConversacionDetailDTO;
+import org.simarro.rag_daw.model.dto.ConversacionResponseDTO;
+import org.simarro.rag_daw.model.dto.MensajeDTO;
+import org.simarro.rag_daw.model.dto.PreguntaDTO;
+import org.simarro.rag_daw.model.enums.EstadoConversacion;
+import org.simarro.rag_daw.srv.ConversacionService;
+import org.simarro.rag_daw.srv.MensajeService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -55,13 +69,25 @@ public class ConversacionController {
      * Las secciones válidas son: GENERAL, BD, PROGRAMACION, WEB
      * La conversación se crea con estado ACTIVA y asociada al usuario autenticado.
      */
+
+    @Autowired
+    private ConversacionService conversacionService;
+    @Autowired
+    private MensajeService mensajeService;
+
     @PostMapping
-    public ResponseEntity<?> crearConversacion(@RequestBody Map<String, String> body
+    public ResponseEntity<ConversacionDetailDTO> crearConversacion(
+            @RequestBody Map<String, String> body
             /* , Principal principal */) {
-        // String seccion = body.get("seccionTematica");
-        // TODO ALUMNO: conversacionService.crear(seccion, principal.getName())
-        throw new UnsupportedOperationException(
-            "POST /api/v1/conversaciones — No implementado (Equipo 3)");
+
+        String seccion = body.get("seccionTematica");
+
+        ConversacionCreateDTO dto = new ConversacionCreateDTO();
+        dto.setUsuarioId(1L); // TODO: reemplazar con principal.getName() → usuarioId
+        dto.setSeccionTematica(seccion);
+
+        ConversacionDetailDTO creada = conversacionService.crearConversacion(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(creada);
     }
 
     /**
@@ -69,16 +95,26 @@ public class ConversacionController {
      * Solo devuelve las conversaciones del usuario logueado.
      */
     @GetMapping
-    public ResponseEntity<?> listarConversaciones(
+    public ResponseEntity<Page<ConversacionResponseDTO>> listarConversaciones(
             @RequestParam(required = false) String seccion,
             @RequestParam(required = false) String estado,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "fechaCreacion,desc") String[] sort
-            /* , Principal principal */) {
-        // TODO ALUMNO: conversacionService.findByUsuario(principal.getName(), seccion, estado, page, size, sort)
-        throw new UnsupportedOperationException(
-            "GET /api/v1/conversaciones — No implementado (Equipo 3)");
+            @RequestParam(defaultValue = "fechaCreacion,desc") String[] sort) {
+
+        EstadoConversacion estadoEnum = null;
+        if (estado != null) {
+            try { estadoEnum = EstadoConversacion.valueOf(estado.toUpperCase()); }
+            catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().build();
+            }
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "fechaCreacion"));
+        Page<ConversacionResponseDTO> resultado =
+                conversacionService.listarConversaciones(1L, seccion, estadoEnum, pageable); // TODO: principal
+
+        return ResponseEntity.ok(resultado);
     }
 
     /**
@@ -86,22 +122,21 @@ public class ConversacionController {
      * Verifica que la conversación pertenece al usuario autenticado.
      */
     @GetMapping("/{id}")
-    public ResponseEntity<?> getConversacion(@PathVariable Long id
-            /* , Principal principal */) {
-        // TODO ALUMNO: conversacionService.findByIdConMensajes(id, principal.getName())
-        throw new UnsupportedOperationException(
-            "GET /api/v1/conversaciones/{id} — No implementado (Equipo 3)");
+    public ResponseEntity<ConversacionDetailDTO> getConversacion(@PathVariable Long id) {
+        return conversacionService.obtenerConversacion(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     /**
      * Eliminar una conversación (borrado lógico o físico, decidid vosotros).
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> eliminarConversacion(@PathVariable Long id
-            /* , Principal principal */) {
-        // TODO ALUMNO: conversacionService.eliminar(id, principal.getName())
-        throw new UnsupportedOperationException(
-            "DELETE /api/v1/conversaciones/{id} — No implementado (Equipo 3)");
+    public ResponseEntity<Void> eliminarConversacion(@PathVariable Long id) {
+        boolean eliminada = conversacionService.eliminarConversacion(id, 1L); // TODO: principal
+        return eliminada
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
     }
 
     /**
@@ -109,11 +144,10 @@ public class ConversacionController {
      * Una conversación archivada no admite nuevas preguntas.
      */
     @PatchMapping("/{id}/archivar")
-    public ResponseEntity<?> archivarConversacion(@PathVariable Long id
-            /* , Principal principal */) {
-        // TODO ALUMNO: conversacionService.archivar(id, principal.getName())
-        throw new UnsupportedOperationException(
-            "PATCH /api/v1/conversaciones/{id}/archivar — No implementado (Equipo 3)");
+    public ResponseEntity<ConversacionDetailDTO> archivarConversacion(@PathVariable Long id) {
+        return conversacionService.archivarConversacion(id, 1L) // TODO: principal
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     /**
@@ -127,17 +161,17 @@ public class ConversacionController {
      *   4. Devuelve { pregunta, respuesta, chunksUsados[], tiempoMs, modelo }
      */
     @PostMapping("/{id}/preguntas")
-    public ResponseEntity<?> enviarPregunta(
+    public ResponseEntity<MensajeDTO> enviarPregunta(
             @PathVariable Long id,
-            @RequestBody Map<String, String> body
-            /* , Principal principal */) {
-        // String texto = body.get("texto");
-        // TODO ALUMNO:
-        //   PreguntaRequestDTO request = new PreguntaRequestDTO(texto);
-        //   PreguntaResponseDTO response = mensajeService.preguntar(id, request);
-        //   return ResponseEntity.ok(response);
-        throw new UnsupportedOperationException(
-            "POST /api/v1/conversaciones/{id}/preguntas — No implementado (Equipo 3)");
+            @RequestBody Map<String, String> body) {
+
+        PreguntaDTO preguntaDTO = new PreguntaDTO();
+        preguntaDTO.setConversacionId(id);
+        preguntaDTO.setUsuarioId(1L); // TODO: principal
+        preguntaDTO.setPregunta(body.get("texto"));
+
+        MensajeDTO respuesta = mensajeService.enviarPregunta(preguntaDTO);
+        return ResponseEntity.ok(respuesta);
     }
 
     /**
@@ -145,12 +179,14 @@ public class ConversacionController {
      * Cada mensaje incluye: tipo (PREGUNTA/RESPUESTA), texto, fecha, chunks usados.
      */
     @GetMapping("/{id}/mensajes")
-    public ResponseEntity<?> getMensajes(
+    public ResponseEntity<Page<MensajeDTO>> getMensajes(
             @PathVariable Long id,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        // TODO ALUMNO: mensajeService.findByConversacionId(id, page, size)
-        throw new UnsupportedOperationException(
-            "GET /api/v1/conversaciones/{id}/mensajes — No implementado (Equipo 3)");
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("fecha").ascending());
+        Page<MensajeDTO> mensajes = mensajeService.findByConversacionId(id, pageable);
+        return ResponseEntity.ok(mensajes);
     }
+
 }

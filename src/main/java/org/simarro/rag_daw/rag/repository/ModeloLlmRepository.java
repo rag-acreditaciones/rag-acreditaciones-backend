@@ -10,8 +10,9 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ModeloLlmRepository
-        extends JpaRepository<ModeloLlmDb, Long>,
+                extends JpaRepository<ModeloLlmDb, Long>,
                 JpaSpecificationExecutor<ModeloLlmDb> {
-    List<ModeloLlmDb> findByActivoTrue();
-    Optional<ModeloLlmDb> findByNombre(String nombre);
+        List<ModeloLlmDb> findByActivoTrue();
+
+        Optional<ModeloLlmDb> findByNombre(String nombre);
 }

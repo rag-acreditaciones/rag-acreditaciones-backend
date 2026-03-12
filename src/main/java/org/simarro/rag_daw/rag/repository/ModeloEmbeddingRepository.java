@@ -10,8 +10,9 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ModeloEmbeddingRepository
-        extends JpaRepository<ModeloEmbeddingDb, Long>,
+                extends JpaRepository<ModeloEmbeddingDb, Long>,
                 JpaSpecificationExecutor<ModeloEmbeddingDb> {
-    List<ModeloEmbeddingDb> findByActivoTrue();
-    Optional<ModeloEmbeddingDb> findByNombre(String nombre);
+        List<ModeloEmbeddingDb> findByActivoTrue();
+
+        Optional<ModeloEmbeddingDb> findByNombre(String nombre);
 }
