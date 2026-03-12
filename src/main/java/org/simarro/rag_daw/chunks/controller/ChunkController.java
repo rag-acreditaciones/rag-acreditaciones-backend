@@ -98,12 +98,12 @@ public class ChunkController {
      */
     @GetMapping("/buscar")
     public ResponseEntity<?> buscarTexto(
-            @RequestParam String texto,
-            @RequestParam(required = false) Long seccionId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        // TODO ALUMNO: chunkService.buscarPorTexto(texto, seccionId, page, size)
-        throw new UnsupportedOperationException("GET /api/v1/chunks/buscar — No implementado (Equipo 2)");
+            @RequestParam @NotBlank String texto,
+            @RequestParam(required = false) @Positive Long seccionId,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int size) throws FiltroException {
+
+        return ResponseEntity.ok(chunkService.buscarPorTexto(texto, seccionId, page, size));
     }
 
     /**
