@@ -1,5 +1,7 @@
 package org.simarro.rag_daw.srv;
 
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.lang.NonNull;
@@ -15,9 +17,9 @@ public interface ConversacionService {
 
     Page<ConversacionResponseDTO> listarConversaciones(@NonNull Long usuarioId, String seccionTematica, EstadoConversacion estado,Pageable pageable);
 
-    ConversacionDetailDTO obtenerConversacion(@NonNull Long conversacionId);
+    Optional<ConversacionDetailDTO> obtenerConversacion(@NonNull Long conversacionId);
 
-    void archivarConversacion(@NonNull Long conversacionId,@NonNull Long usuarioId);
+    Optional<ConversacionDetailDTO> archivarConversacion(@NonNull Long conversacionId,@NonNull Long usuarioId);
 
-    void eliminarConversacion(@NonNull Long conversacionId, @NonNull Long usuarioId);
+    boolean eliminarConversacion(@NonNull Long conversacionId, @NonNull Long usuarioId);
 }

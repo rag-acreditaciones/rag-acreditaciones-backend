@@ -12,7 +12,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 public interface ConversacionRepository  extends JpaRepository<ConversacionDb, Long>,JpaSpecificationExecutor<ConversacionDb>{
 
-    // Listar todas las conversaciones de un usuario
+       // Listar todas las conversaciones de un usuario
     List<ConversacionDb> findByUsuarioId(Long usuarioId);
 
     // Listar conversaciones de un usuario por estado (ACTIVA / ARCHIVADA)

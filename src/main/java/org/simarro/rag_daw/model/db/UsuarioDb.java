@@ -2,6 +2,7 @@ package org.simarro.rag_daw.model.db;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -24,6 +25,11 @@ public class UsuarioDb {
     private String email;
     @NotNull
     private String password;
+    @NotNull
+    @Column(nullable = false)
+    private String estado = "PENDIENTE";
+    @Column(name = "fecha_creacion")
+    private LocalDateTime fechaCreacion;
     @NotNull
     @ManyToMany(fetch = FetchType.EAGER)
     //En la tabla 'usuarios_roles' queremos sacar todos los 'idRol' correspondientes

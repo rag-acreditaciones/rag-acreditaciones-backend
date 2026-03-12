@@ -1,8 +1,13 @@
 package org.simarro.rag_daw.srv.impl;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Service;
 
-import org.simarro.rag_daw.exception.ResourceNotFoundException;
 import org.simarro.rag_daw.model.db.ConversacionDb;
 import org.simarro.rag_daw.model.db.MensajeDb;
 import org.simarro.rag_daw.model.dto.ConversacionCreateDTO;
@@ -12,133 +17,121 @@ import org.simarro.rag_daw.model.enums.EstadoConversacion;
 import org.simarro.rag_daw.repository.ConversacionRepository;
 import org.simarro.rag_daw.repository.MensajeRepository;
 import org.simarro.rag_daw.srv.ConversacionService;
-import org.simarro.rag_daw.srv.mapper.ConversacionMapper;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ConversacionServiceImpl implements ConversacionService {
 
     private final ConversacionRepository conversacionRepository;
     private final MensajeRepository mensajeRepository;
-    private final ConversacionMapper mapper;
 
-    public ConversacionServiceImpl(
-            ConversacionRepository conversacionRepository,
-            MensajeRepository mensajeRepository,
-            ConversacionMapper mapper) {
-
+    public ConversacionServiceImpl(ConversacionRepository conversacionRepository, MensajeRepository mensajeRepository) {
         this.conversacionRepository = conversacionRepository;
         this.mensajeRepository = mensajeRepository;
-        this.mapper = mapper;
     }
 
     @Override
-    @Transactional
-    public ConversacionDetailDTO crearConversacion(ConversacionCreateDTO dto) {
+    public ConversacionDetailDTO crearConversacion(@NonNull ConversacionCreateDTO dto) {
 
-        ConversacionDb conversacion = mapper.toEntity(dto);
+        ConversacionDb conversacion = new ConversacionDb();
+
+        conversacion.setUsuarioId(dto.getUsuarioId());
+        conversacion.setTitulo(dto.getTitulo());
+        conversacion.setSeccionTematica(dto.getSeccionTematica());
+        conversacion.setEstado(dto.getEstado());
+        conversacion.setFechaCreacion(LocalDateTime.now());
 
         ConversacionDb saved = conversacionRepository.save(conversacion);
 
-        ConversacionDetailDTO response = mapper.toDetailDTO(saved);
-        response.setListaMensajes(List.of());
-
-        return response;
+        return new ConversacionDetailDTO(
+                saved.getId(),
+                saved.getUsuarioId(),
+                saved.getTitulo(),
+                saved.getSeccionTematica(),
+                saved.getEstado(),
+                saved.getFechaCreacion(),
+                List.of()
+        );
     }
 
     @Override
     public Page<ConversacionResponseDTO> listarConversaciones(
-            Long usuarioId,
+            @NonNull Long usuarioId,
             String seccionTematica,
             EstadoConversacion estado,
             Pageable pageable) {
 
-        Specification<ConversacionDb> spec = (root, query, cb) -> cb.equal(root.get("usuarioId"), usuarioId);
+        Page<ConversacionDb> page;
 
-        if (seccionTematica != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("seccionTematica"), seccionTematica));
+        if (seccionTematica != null && estado != null) {
+            page = conversacionRepository.findByUsuarioIdAndSeccionTematicaAndEstado(usuarioId, seccionTematica, estado, pageable);
+        } else if (seccionTematica != null) {
+            page = conversacionRepository.findByUsuarioIdAndSeccionTematica(usuarioId, seccionTematica, pageable);
+        } else if (estado != null) {
+            page = conversacionRepository.findByUsuarioIdAndEstado(usuarioId, estado, pageable);
+        } else {
+            page = conversacionRepository.findByUsuarioId(usuarioId, pageable);
         }
 
-        if (estado != null) {
-            spec = spec.and((root, query, cb) -> cb.equal(root.get("estado"), estado));
-        }
+        return page.map(conversacion -> {
 
-        Page<ConversacionDb> resultado =
-                conversacionRepository.findAll(spec, pageable);
+            List<MensajeDb> mensajes =
+                    mensajeRepository.findByConversacionIdOrderByFechaAsc(conversacion.getId());
 
-        return resultado.map(conversacion -> {
+            MensajeDb ultimoMensaje =
+                    mensajes.isEmpty() ? null : mensajes.get(mensajes.size() - 1);
 
-            ConversacionResponseDTO dto = mapper.toResponseDTO(conversacion);
-
-            mensajeRepository.findTopByConversacionIdOrderByFechaDesc(conversacion.getId()).ifPresent(dto::setUltimoMensaje);
-
-            return dto;
+            return new ConversacionResponseDTO(
+                    conversacion.getId(),
+                    conversacion.getUsuarioId(),
+                    conversacion.getTitulo(),
+                    conversacion.getSeccionTematica(),
+                    conversacion.getEstado(),
+                    conversacion.getFechaCreacion(),
+                    ultimoMensaje
+            );
         });
     }
 
     @Override
-    public ConversacionDetailDTO obtenerConversacion(Long id) {
+    public Optional<ConversacionDetailDTO> obtenerConversacion(@NonNull Long conversacionId) {
+        Optional<ConversacionDb> conversacion = conversacionRepository.findById(conversacionId);
+        if (conversacion.isEmpty()) return Optional.empty();
+        List<MensajeDb> mensajes = mensajeRepository.findByConversacionIdOrderByFechaAsc(conversacionId);
+        ConversacionDb c = conversacion.get();
 
-        ConversacionDb conversacion = findConversacionOrThrow(id);
-
-        ConversacionDetailDTO dto = mapper.toDetailDTO(conversacion);
-
-        List<MensajeDb> mensajes = mensajeRepository.findByConversacionIdOrderByFechaAsc(id);
-
-        dto.setListaMensajes(mensajes);
-
-        return dto;
+        return Optional.of(new ConversacionDetailDTO(
+                c.getId(),
+                c.getUsuarioId(),
+                c.getTitulo(),
+                c.getSeccionTematica(),
+                c.getEstado(),
+                c.getFechaCreacion(),
+                mensajes
+        ));
     }
 
     @Override
-    @Transactional
-    public void archivarConversacion(Long id, Long usuarioId) {
-
-        ConversacionDb conversacion = findConversacionOrThrow(id);
-
-        if (!conversacion.getUsuarioId().equals(usuarioId)) {
-            throw new IllegalArgumentException("No tienes permiso para archivar esta conversacion");
+    public Optional<ConversacionDetailDTO> archivarConversacion(@NonNull Long conversacionId, @NonNull Long usuarioId) {
+        Optional<ConversacionDb> conversacion = conversacionRepository.findById(conversacionId);
+        if (conversacion.isPresent() && conversacion.get().getUsuarioId().equals(usuarioId)) {
+            ConversacionDb c = conversacion.get();
+            c.setEstado(EstadoConversacion.ARCHIVADA);
+            conversacionRepository.save(c);
+            return obtenerConversacion(conversacionId);
         }
-
-        conversacion.setEstado(EstadoConversacion.ARCHIVADA);
-
-        conversacionRepository.save(conversacion);
+        return Optional.empty();
     }
 
+    @SuppressWarnings("null")
     @Override
-    @Transactional
-    public void eliminarConversacion(Long id, Long usuarioId) {
+    public boolean eliminarConversacion(@NonNull Long conversacionId,@NonNull Long usuarioId) {
+        Optional<ConversacionDb> conversacion = conversacionRepository.findById(conversacionId);
 
-        ConversacionDb conversacion = findConversacionOrThrow(id);
-
-        if (!conversacion.getUsuarioId().equals(usuarioId)) {
-            throw new IllegalArgumentException("No tienes permiso para eliminar esta conversacion");
+        if (conversacion.isPresent() && conversacion.get().getUsuarioId().equals(usuarioId)) {
+            mensajeRepository.deleteByConversacionId(conversacionId);
+            conversacionRepository.delete(conversacion.get());
+            return true;
         }
-
-        conversacionRepository.delete(conversacion);
+        return false;
     }
-
-    private ConversacionDb findConversacionOrThrow(Long id) {
-        return conversacionRepository.findById(id).orElseThrow(() ->new ResourceNotFoundException("Conversacion no encontrada con id: " + id));
-    }
-
-    private String generarTitulo(String texto) {
-
-    if (texto == null || texto.isBlank()) {
-        return "Nueva conversación";
-    }
-
-    String limpio = texto.trim();
-
-    if (limpio.length() <= 50) {
-        return limpio;
-    }
-
-    return limpio.substring(0, 50) + "...";
-}
 }
