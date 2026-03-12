@@ -1,8 +1,7 @@
 package org.simarro.rag_daw.chunks.model.DTO;
 
-import java.util.Map;
-
 import org.simarro.rag_daw.chunks.model.ENUMS.EstadoChunk;
+import org.simarro.rag_daw.documentos.model.dto.DocumentoFilterDTO;
 
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -19,9 +18,8 @@ public class ChunkDetailDTO {
     private Long id;
     private Integer orden;
     private String textoCompleto;
-    private Integer numTokens;
     @Enumerated(EnumType.STRING)
     private EstadoChunk estado;
-    private Map<String, Object> metadata;
+    private DocumentoFilterDTO documento;
 
 }

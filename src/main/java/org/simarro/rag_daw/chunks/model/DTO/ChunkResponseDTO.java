@@ -16,10 +16,9 @@ import lombok.NoArgsConstructor;
 public class ChunkResponseDTO {
     private Long id;
     private Integer orden;
-    private String textoCompleto;
     private String truncado100chars;
     private Integer numTokens;
     @Enumerated(EnumType.STRING)
     private EstadoChunk estado;
-    
+
 }
