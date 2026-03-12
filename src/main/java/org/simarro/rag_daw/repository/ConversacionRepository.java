@@ -7,8 +7,10 @@ import org.simarro.rag_daw.model.enums.EstadoConversacion;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-public interface ConversacionRepository extends JpaRepository<ConversacionDb, Long> {
+
+public interface ConversacionRepository  extends JpaRepository<ConversacionDb, Long>,JpaSpecificationExecutor<ConversacionDb>{
 
        // Listar todas las conversaciones de un usuario
     List<ConversacionDb> findByUsuarioId(Long usuarioId);
@@ -33,3 +35,4 @@ public interface ConversacionRepository extends JpaRepository<ConversacionDb, Lo
             Pageable pageable
     );
 }
+
