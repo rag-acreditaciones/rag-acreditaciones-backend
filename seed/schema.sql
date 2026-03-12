@@ -279,3 +279,20 @@ CREATE INDEX IF NOT EXISTS idx_documentos_estado ON documentos(estado);
 CREATE INDEX IF NOT EXISTS idx_documentos_seccion ON documentos(seccion_tematica_id);
 CREATE INDEX IF NOT EXISTS idx_documentos_subido_por ON documentos(subido_por);
 
+
+CREATE TABLE IF NOT EXISTS chunks (
+    id              BIGSERIAL PRIMARY KEY,
+    orden_chunk     INTEGER NOT NULL,
+    texto_chunk     TEXT NOT NULL,
+    estado_chunk    VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE',
+    CONSTRAINT chunk_estado_chunk_check CHECK (estado_chunk IN ('PENDIENTE', 'REVISADO', 'DESCARTADO')),
+    num_tokens      INTEGER NOT NULL,
+    vector_store_id UUID NOT NULL,
+    documento_id    BIGINT NOT NULL REFERENCES documentos(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_chunks_documento_id    ON chunks(documento_id);
+CREATE INDEX IF NOT EXISTS idx_chunks_estado_chunk    ON chunks(estado_chunk);
+CREATE INDEX IF NOT EXISTS idx_chunks_vector_store_id ON chunks(vector_store_id);
+CREATE INDEX IF NOT EXISTS idx_chunks_documento_orden ON chunks(documento_id, orden_chunk);
+
