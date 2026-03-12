@@ -279,6 +279,7 @@ CREATE INDEX IF NOT EXISTS idx_documentos_estado ON documentos(estado);
 CREATE INDEX IF NOT EXISTS idx_documentos_seccion ON documentos(seccion_tematica_id);
 CREATE INDEX IF NOT EXISTS idx_documentos_subido_por ON documentos(subido_por);
 
+-- TABLAS DE CHUNKS (Equipo 2)
 
 CREATE TABLE IF NOT EXISTS chunks (
     id              BIGSERIAL PRIMARY KEY,
