@@ -22,6 +22,8 @@ public interface ValoracionRepository extends JpaRepository<ValoracionDb, Long>,
     @NonNull
     List<ValoracionDb> findByMensajeId(@Param("mensajeId") Long mensajeId);
 
+    List<ValoracionDb> findByMensajeIdIn(List<Long> mensajeIds);
+
     long countByValoracion(ValoracionDb.TipoValoracion valoracion);
 
     @NonNull
@@ -76,7 +78,7 @@ public interface ValoracionRepository extends JpaRepository<ValoracionDb, Long>,
     @Query("SELECT v FROM ValoracionDb v WHERE v.fechaCreacion BETWEEN :fechaDesde AND :fechaHasta")
     @NonNull
     List<ValoracionDb> findEnRangoFechas(
-        @Param("fechaDesde") LocalDateTime fechaDesde, 
+        @Param("fechaDesde") LocalDateTime fechaDesde,
         @Param("fechaHasta") LocalDateTime fechaHasta
     );
 }
