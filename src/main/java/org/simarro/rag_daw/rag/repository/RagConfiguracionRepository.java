@@ -10,9 +10,11 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface RagConfiguracionRepository
-        extends JpaRepository<RagConfiguracionDb, Long>,
+                extends JpaRepository<RagConfiguracionDb, Long>,
                 JpaSpecificationExecutor<RagConfiguracionDb> {
-    List<RagConfiguracionDb> findByActivoTrue();
-    Optional<RagConfiguracionDb> findByPorDefectoTrue();
-    Optional<RagConfiguracionDb> findByNombre(String nombre);
+        List<RagConfiguracionDb> findByActivoTrue();
+
+        Optional<RagConfiguracionDb> findByPorDefectoTrue();
+
+        Optional<RagConfiguracionDb> findByNombre(String nombre);
 }

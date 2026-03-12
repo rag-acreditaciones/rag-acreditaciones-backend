@@ -9,7 +9,6 @@ import org.simarro.rag_daw.model.enums.RolNombre;
 
 public interface RolService {
     public Optional<RolDb> getByRolNombre(RolNombre rolNombre);
+
     public void save(@NonNull RolDb rol);
 }
-
-

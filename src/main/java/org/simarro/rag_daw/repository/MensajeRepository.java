@@ -21,10 +21,10 @@ public interface MensajeRepository extends JpaRepository<MensajeDb, Long> {
     // Obtener el último mensaje de una conversación (para mostrar en listados)
     Optional<MensajeDb> findTopByConversacionIdOrderByFechaDesc(Long conversacionId);
 
-    // Borrar todos los mensajes de una conversación (cuando eliminas la conversación)
+    // Borrar todos los mensajes de una conversación (cuando eliminas la
+    // conversación)
     void deleteByConversacionId(Long conversacionId);
 
     Page<MensajeDb> findByConversacionIdOrderByFechaAsc(Long conversacionId, Pageable pageable);
 
-    long countByConversacionId(Long conversacionId);
 }

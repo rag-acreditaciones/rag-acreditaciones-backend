@@ -3,12 +3,14 @@ package org.simarro.rag_daw.valoraciones.srv.impl;
 import java.util.List;
 
 import org.simarro.rag_daw.exception.ResourceNotFoundException;
+import org.simarro.rag_daw.model.db.MensajeDb;
 import org.simarro.rag_daw.model.db.UsuarioDb;
 import org.simarro.rag_daw.repository.UsuarioRepository;
 import org.simarro.rag_daw.valoraciones.model.db.ValoracionDb;
 import org.simarro.rag_daw.valoraciones.model.dto.ValoracionCreateDTO;
 import org.simarro.rag_daw.valoraciones.model.dto.ValoracionDTO;
 import org.simarro.rag_daw.valoraciones.model.dto.ValoracionResumenDTO;
+import org.simarro.rag_daw.valoraciones.repository.MensajeConsultaRepository;
 import org.simarro.rag_daw.valoraciones.repository.ValoracionRepository;
 import org.simarro.rag_daw.valoraciones.srv.ValoracionService;
 import org.simarro.rag_daw.valoraciones.srv.mapper.ValoracionMapper;
@@ -24,6 +26,7 @@ public class ValoracionServiceImpl implements ValoracionService {
 
     private final ValoracionRepository valoracionRepository;
     private final UsuarioRepository usuarioRepository;
+    private final MensajeConsultaRepository mensajeConsultaRepository;
     private final ValoracionMapper valoracionMapper;
 
     @Override
@@ -63,8 +66,41 @@ public class ValoracionServiceImpl implements ValoracionService {
 
     @Override
     public ValoracionResumenDTO getResumenConversacion(Long conversacionId) {
-        throw new UnsupportedOperationException(
-                "Pendiente de implementar cuando exista relación entre valoraciones y conversación");
+        log.debug("Obteniendo resumen de valoraciones para conversación ID: {}", conversacionId);
+
+        List<MensajeDb> mensajes = mensajeConsultaRepository.findByConversacionId(conversacionId);
+
+        if (mensajes.isEmpty()) {
+            return new ValoracionResumenDTO(0L, 0L, 0.0, List.of());
+        }
+
+        List<Long> mensajeIds = mensajes.stream()
+                .map(MensajeDb::getId)
+                .toList();
+
+        List<ValoracionDb> valoraciones = valoracionRepository.findByMensajeIdIn(mensajeIds);
+
+        long positivas = valoraciones.stream()
+                .filter(v -> v.getValoracion() == ValoracionDb.TipoValoracion.POSITIVA)
+                .count();
+
+        long negativas = valoraciones.stream()
+                .filter(v -> v.getValoracion() == ValoracionDb.TipoValoracion.NEGATIVA)
+                .count();
+
+        long total = valoraciones.size();
+        double ratio = total == 0 ? 0.0 : (double) positivas / total;
+
+        List<ValoracionDTO> detalles = valoraciones.stream()
+                .map(valoracionMapper::toDTO)
+                .toList();
+
+        return new ValoracionResumenDTO(
+                positivas,
+                negativas,
+                ratio,
+                detalles
+        );
     }
 
     @Override
@@ -76,11 +112,6 @@ public class ValoracionServiceImpl implements ValoracionService {
 
         ValoracionDb valoracion = valoracionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Valoración no encontrada"));
-
-        // ✅ SEGURIDAD ELIMINADA - Ahora cualquier usuario autenticado puede eliminar cualquier valoración
-        // if (!valoracion.getUsuarioId().equals(usuario.getId())) {
-        //     throw new SecurityException("No puedes eliminar valoraciones de otros usuarios");
-        // }
 
         valoracionRepository.delete(valoracion);
         log.info("Valoración eliminada con ID: {}", id);
