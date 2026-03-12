@@ -16,8 +16,8 @@ public interface ChunkService {
     ChunkDetailDTO findById(Long id);
     PaginaResponse<ChunkDetailDTO> findByDocumentoId (Long docId, String estado, int page, int size, String[] sort)  throws FiltroException; 
     PaginaResponse<ChunkBusquedaDTO> buscarPorTexto (String texto, Long seccionId, int page, int size) throws FiltroException;
-    List<ChunkBusquedaDTO> busquedaSemantica (Map<String, Object> body) throws ResourceNotFoundException;
+    List<ChunkBusquedaDTO> busquedaSemantica (Map<String, Object> body) throws ResourceNotFoundException, FiltroException;
     ChunkStatsDTO getChunkStats(Long docId);
-    ChunkResponseDTO cambiarEstado(Long id, String nuevoEstado);
+    ChunkResponseDTO cambiarEstado(Long id, String nuevoEstado) throws FiltroException;
 
 }
