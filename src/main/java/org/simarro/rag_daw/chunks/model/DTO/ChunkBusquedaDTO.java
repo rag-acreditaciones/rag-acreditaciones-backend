@@ -3,7 +3,7 @@ package org.simarro.rag_daw.chunks.model.DTO;
 import java.util.List;
 
 import org.simarro.rag_daw.chunks.model.ENUMS.EstadoChunk;
-import org.simarro.rag_daw.documentos.model.dto.DocumentoFilterDTO;
+import org.simarro.rag_daw.documentos.model.dto.DocumentoResponseDTO;
 
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @Data
 public class ChunkBusquedaDTO {
     private Long id;
-    private DocumentoFilterDTO documento;
+    private DocumentoResponseDTO documento;
     private Integer orden;
     private String texto;
     private Integer numTokens;
