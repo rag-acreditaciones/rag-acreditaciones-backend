@@ -216,3 +216,9 @@ FROM reportes_respuesta WHERE motivo = 'INCORRECTA';
 
 SELECT 'Test 50 - Reporte ID 6' as test, estado 
 FROM reportes_respuesta WHERE id = 6;
+--  DOCUMENTOS (Equipo 1) SECCIONES TEMATICAS (datos precargados)
+INSERT INTO secciones_tematicas (nombre, descripcion, codigo_color) VALUES
+('GENERAL',       'Documentacion general del proceso de acreditaciones', '#6B7280'),
+('BD',            'Bases de datos relacionales y no relacionales',       '#3B82F6'),
+('PROGRAMACION',  'Programacion orientada a objetos y estructurada',    '#10B981'),
+('WEB',           'Desarrollo web frontend y backend',                  '#F59E0B');

@@ -234,3 +234,48 @@ ON reportes_respuesta(mensaje_id);
 
 CREATE INDEX idx_reportes_estado
 ON reportes_respuesta(estado);
+-- Tabla para las Conversaciones
+CREATE TABLE conversaciones (
+    id BIGSERIAL PRIMARY KEY,
+    usuario_id BIGINT NOT NULL,
+    titulo VARCHAR(255) NOT NULL DEFAULT 'Nueva conversación',
+    seccion_tematica VARCHAR(255),
+    estado VARCHAR(50) NOT NULL DEFAULT 'ACTIVA',
+    fecha_creacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabla para los Mensajes
+CREATE TABLE mensajes (
+    id BIGSERIAL PRIMARY KEY,
+    conversacion_id BIGINT NOT NULL,
+    tipo VARCHAR(50) NOT NULL,
+    contenido TEXT NOT NULL,
+    chunks_utilizados JSON,
+    fecha TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+-- TABLAS DE DOCUMENTOS (Equipo 1)
+CREATE TABLE IF NOT EXISTS secciones_tematicas (
+  id          BIGSERIAL PRIMARY KEY,
+  nombre      VARCHAR(100) NOT NULL UNIQUE,
+  descripcion VARCHAR(500),
+  codigo_color VARCHAR(7)
+);
+
+CREATE TABLE IF NOT EXISTS documentos (
+  id                  BIGSERIAL PRIMARY KEY,
+  nombre_fichero      VARCHAR(255) NOT NULL,
+  content_type        VARCHAR(100),
+  size_bytes          BIGINT,
+  descripcion         VARCHAR(500),
+  base64_contenido    TEXT,
+  seccion_tematica_id BIGINT REFERENCES secciones_tematicas(id),
+  subido_por          VARCHAR(255) NOT NULL,
+  estado              VARCHAR(50) NOT NULL DEFAULT 'PENDIENTE'
+                      CHECK (estado IN ('PENDIENTE','PROCESANDO','PROCESADO','ERROR','ELIMINADO')),
+  fecha_subida        TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_documentos_estado ON documentos(estado);
+CREATE INDEX IF NOT EXISTS idx_documentos_seccion ON documentos(seccion_tematica_id);
+CREATE INDEX IF NOT EXISTS idx_documentos_subido_por ON documentos(subido_por);
+
