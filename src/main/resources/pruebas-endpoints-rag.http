@@ -536,7 +536,7 @@ Authorization: Bearer {{token}}
 
 ###
 ## 61. Actividad diaria de preguntas (line chart)
-GET {{baseUrl}}/api/v1/dashboard/chats/actividad-diaria?fechaDesde=2025-01-01&fechaHasta=2025-06-30 HTTP/1.1
+GET {{baseUrl}}/api/v1/dashboard/chats/actividad-diaria?fechaDesde=2026-01-01&fechaHasta=2026-06-30 HTTP/1.1
 Authorization: Bearer {{token}}
 
 ###
