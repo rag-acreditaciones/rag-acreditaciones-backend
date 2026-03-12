@@ -66,8 +66,7 @@ public class ChunkServiceImpl implements ChunkService {
         if (documento.isPresent()) {
             return ChunkMapper.INSTANCE.documentoChunkToChunkDetailDTO(documento.get());
         }
-        // TODO: ERROR_CHUNK_NOT_FOUND
-        return null;
+        throw new ResourceNotFoundException("CHUNK_NOT_FOUND");
     }
 
     @Override
@@ -138,27 +137,25 @@ public class ChunkServiceImpl implements ChunkService {
             return response;
 
         } catch (JpaSystemException e) {
-            String cause = "";
-            if (e.getRootCause() != null) {
-                if (e.getCause().getMessage() != null) {
-                    cause = e.getRootCause().getMessage();
-                }
-            }
+            String cause = e.getRootCause() != null ? e.getRootCause().getMessage() : e.getMessage();
             throw new FiltroException("BAD_OPERATOR_FILTER",
-                    "Error: No es pot realitzar aquesta operació sobre l'atribut pel tipus de dada",
-                    e.getMessage() + ":" + cause);
+                    "No se puede aplicar esta operación sobre el atributo por incompatibilidad de tipos",
+                    e.getMessage() + ": " + cause);
         } catch (PropertyReferenceException e) {
             throw new FiltroException("BAD_ATTRIBUTE_ORDER",
-                    "Error: No existeix el nom de l'atribut d'ordenació a la taula", e.getMessage());
+                    "El atributo de ordenación '" + e.getPropertyName() + "' no existe en "
+                            + e.getType().getType().getSimpleName(),
+                    e.getMessage());
         } catch (InvalidDataAccessApiUsageException e) {
-            throw new FiltroException("BAD_ATTRIBUTE_FILTER", "Error: Possiblement no existeix l'atributo a la taula",
+            throw new FiltroException("BAD_ATTRIBUTE_FILTER",
+                    "El atributo de filtrado no existe en la entidad",
                     e.getMessage());
         }
     }
 
     @Override
     public List<ChunkBusquedaDTO> busquedaSemantica(Map<String, Object> body)
-            throws ResourceNotFoundException {
+            throws ResourceNotFoundException, FiltroException {
 
         // if (!body.containsKey("consulta") || body.get("consulta") == null)
         // throw new DataValidationException("PARAMETERS_NOT_FOUND",
@@ -189,7 +186,9 @@ public class ChunkServiceImpl implements ChunkService {
                     })
                     .collect(Collectors.toList());
         } catch (ClassCastException e) {
-            throw new ResourceNotFoundException("BAD_TYPE_ERROR", e.getCause());
+            throw new FiltroException("BAD_TYPE_ERROR",
+                    "Tipo de dato incorrecto en los parámetros de búsqueda",
+                    e.getMessage());
         } catch (ResourceNotFoundException e) {
             throw e;
         } catch (Exception e) {
@@ -207,7 +206,7 @@ public class ChunkServiceImpl implements ChunkService {
     public ChunkStatsDTO getChunkStats(Long docId) {
         DocumentoChunkStatsInterface statsInterface = chunkRepository.chunkStats(docId);
         DocumentoResponseDTO doc = documentoMapper.toResponseDTO(documentoRepository.findById(docId)
-                .orElseThrow(() -> new ResourceNotFoundException()));
+                .orElseThrow(() -> new ResourceNotFoundException("DOCUMENTO_NOT_FOUND: " + docId)));
         return new ChunkStatsDTO(
                 doc,
                 statsInterface.getNumeroChunks(),
@@ -221,10 +220,16 @@ public class ChunkServiceImpl implements ChunkService {
     }
 
     @Override
-    public ChunkResponseDTO cambiarEstado(Long id, String nuevoEstado) {
+    public ChunkResponseDTO cambiarEstado(Long id, String nuevoEstado) throws FiltroException {
         DocumentoChunkDb documento = chunkRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("CHUNK_NOT_FOUND"));
-        documento.setEstado(EstadoChunk.valueOf(nuevoEstado));
+        try {
+            documento.setEstado(EstadoChunk.valueOf(nuevoEstado.toUpperCase()));
+        } catch (IllegalArgumentException e) {
+            throw new FiltroException("BAD_ESTADO_VALUE",
+                    "Estado inválido: '" + nuevoEstado + "'",
+                    "Valores permitidos: PENDIENTE, REVISADO, DESCARTADO");
+        }
         chunkRepository.save(documento);
         return ChunkMapper.INSTANCE.documentoChunkToChunkResponseDTO(documento);
     }
