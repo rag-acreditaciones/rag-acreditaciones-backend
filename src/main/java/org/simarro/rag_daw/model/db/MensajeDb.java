@@ -8,6 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.simarro.rag_daw.model.enums.TipoMensaje;
 
 @Data
@@ -36,6 +38,8 @@ public class MensajeDb {
      * IDs de chunks usados por el RAG.
      * Se guarda como JSON array (ej: [12, 45, 78])
      */
+
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "chunks_utilizados", columnDefinition = "JSON")
     private List<Long> chunksUtilizados;
 

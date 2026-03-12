@@ -22,4 +22,6 @@ public interface ConversacionService {
     Optional<ConversacionDetailDTO> archivarConversacion(@NonNull Long conversacionId,@NonNull Long usuarioId);
 
     boolean eliminarConversacion(@NonNull Long conversacionId, @NonNull Long usuarioId);
+
+    String generarTitulo(@NonNull String primerMensaje);
 }
