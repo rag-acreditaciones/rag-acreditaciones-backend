@@ -51,8 +51,7 @@ public class ConversacionServiceImpl implements ConversacionService {
                 saved.getSeccionTematica(),
                 saved.getEstado(),
                 saved.getFechaCreacion(),
-                List.of()
-        );
+                List.of());
     }
 
     @Override
@@ -65,7 +64,8 @@ public class ConversacionServiceImpl implements ConversacionService {
         Page<ConversacionDb> page;
 
         if (seccionTematica != null && estado != null) {
-            page = conversacionRepository.findByUsuarioIdAndSeccionTematicaAndEstado(usuarioId, seccionTematica, estado, pageable);
+            page = conversacionRepository.findByUsuarioIdAndSeccionTematicaAndEstado(usuarioId, seccionTematica, estado,
+                    pageable);
         } else if (seccionTematica != null) {
             page = conversacionRepository.findByUsuarioIdAndSeccionTematica(usuarioId, seccionTematica, pageable);
         } else if (estado != null) {
@@ -76,11 +76,9 @@ public class ConversacionServiceImpl implements ConversacionService {
 
         return page.map(conversacion -> {
 
-            List<MensajeDb> mensajes =
-                    mensajeRepository.findByConversacionIdOrderByFechaAsc(conversacion.getId());
+            List<MensajeDb> mensajes = mensajeRepository.findByConversacionIdOrderByFechaAsc(conversacion.getId());
 
-            MensajeDb ultimoMensaje =
-                    mensajes.isEmpty() ? null : mensajes.get(mensajes.size() - 1);
+            MensajeDb ultimoMensaje = mensajes.isEmpty() ? null : mensajes.get(mensajes.size() - 1);
 
             return new ConversacionResponseDTO(
                     conversacion.getId(),
@@ -89,15 +87,15 @@ public class ConversacionServiceImpl implements ConversacionService {
                     conversacion.getSeccionTematica(),
                     conversacion.getEstado(),
                     conversacion.getFechaCreacion(),
-                    ultimoMensaje
-            );
+                    ultimoMensaje);
         });
     }
 
     @Override
     public Optional<ConversacionDetailDTO> obtenerConversacion(@NonNull Long conversacionId) {
         Optional<ConversacionDb> conversacion = conversacionRepository.findById(conversacionId);
-        if (conversacion.isEmpty()) return Optional.empty();
+        if (conversacion.isEmpty())
+            return Optional.empty();
         List<MensajeDb> mensajes = mensajeRepository.findByConversacionIdOrderByFechaAsc(conversacionId);
         ConversacionDb c = conversacion.get();
 
@@ -108,8 +106,7 @@ public class ConversacionServiceImpl implements ConversacionService {
                 c.getSeccionTematica(),
                 c.getEstado(),
                 c.getFechaCreacion(),
-                mensajes
-        ));
+                mensajes));
     }
 
     @Override
@@ -127,7 +124,7 @@ public class ConversacionServiceImpl implements ConversacionService {
     @SuppressWarnings("null")
     @Override
     @Transactional
-    public boolean eliminarConversacion(@NonNull Long conversacionId,@NonNull Long usuarioId) {
+    public boolean eliminarConversacion(@NonNull Long conversacionId, @NonNull Long usuarioId) {
         Optional<ConversacionDb> conversacion = conversacionRepository.findById(conversacionId);
 
         if (conversacion.isPresent() && conversacion.get().getUsuarioId().equals(usuarioId)) {
@@ -141,7 +138,7 @@ public class ConversacionServiceImpl implements ConversacionService {
     @Override
     public String generarTitulo(@NonNull String primerMensaje) {
         String prompt = """
-                Genera un título corto y descriptivo (máximo 6 palabras) para una conversación 
+                Genera un título corto y descriptivo (máximo 6 palabras) para una conversación
                 que empieza con este mensaje: "%s".
                 Responde SOLO con el título, sin comillas ni explicaciones.
                 """.formatted(primerMensaje);
@@ -151,5 +148,5 @@ public class ConversacionServiceImpl implements ConversacionService {
 
         // Seguridad: si la IA devuelve algo muy largo, recortamos
         return titulo.length() > 60 ? titulo.substring(0, 60) + "…" : titulo;
-}
+    }
 }

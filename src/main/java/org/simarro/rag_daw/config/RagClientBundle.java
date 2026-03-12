@@ -6,8 +6,8 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.simarro.rag_daw.rag.model.db.RagConfiguracionDb;
 
 public record RagClientBundle(
-    RagConfiguracionDb configuracion,
-    EmbeddingModel embeddingModel,
-    ChatModel llmModel,
-    VectorStore vectorStore
-) {}
+        RagConfiguracionDb configuracion,
+        EmbeddingModel embeddingModel,
+        ChatModel llmModel,
+        VectorStore vectorStore) {
+}

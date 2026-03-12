@@ -14,6 +14,6 @@ public interface DashboardMensajeRepository extends JpaRepository<MensajeDb, Lon
     Long countPreguntas();
 
     @Query("SELECT EXTRACT(HOUR FROM m.fecha), COUNT(m) FROM MensajeDb m " +
-       "WHERE m.tipo = 'PREGUNTA' GROUP BY EXTRACT(HOUR FROM m.fecha) ORDER BY 1")
+            "WHERE m.tipo = 'PREGUNTA' GROUP BY EXTRACT(HOUR FROM m.fecha) ORDER BY 1")
     List<Object[]> countPorHora();
 }

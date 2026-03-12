@@ -10,25 +10,26 @@ import org.simarro.rag_daw.repository.UsuarioRepository;
 import java.util.Optional;
 
 @Service
-@Transactional //Mantiene la coherencia de la BD si hay varios accesos de escritura concurrentes
+@Transactional // Mantiene la coherencia de la BD si hay varios accesos de escritura
+               // concurrentes
 public class UsuarioService {
 
     @Autowired
     UsuarioRepository usuarioRepository;
 
-    public Optional<UsuarioDb> getByNickname(String nickname){
+    public Optional<UsuarioDb> getByNickname(String nickname) {
         return usuarioRepository.findByEmail(nickname);
     }
 
-    public boolean existsByNickname(String nickname){
+    public boolean existsByNickname(String nickname) {
         return usuarioRepository.existsByEmail(nickname);
     }
 
-    public boolean existsByEmail(String email){
+    public boolean existsByEmail(String email) {
         return usuarioRepository.existsByEmail(email);
     }
 
-    public void save(@NonNull UsuarioDb usuario){
+    public void save(@NonNull UsuarioDb usuario) {
         usuarioRepository.save(usuario);
     }
 

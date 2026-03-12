@@ -12,15 +12,15 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface DashboardConversacionRepository extends JpaRepository<ConversacionDb, Long> {
 
-    @Query("SELECT COUNT(c) FROM ConversacionDb c")
-    Long countTotal();
+       @Query("SELECT COUNT(c) FROM ConversacionDb c")
+       Long countTotal();
 
-    @Query("SELECT c.seccionTematica, COUNT(c) FROM ConversacionDb c GROUP BY c.seccionTematica")
-    List<Object[]> countPorSeccion();
+       @Query("SELECT c.seccionTematica, COUNT(c) FROM ConversacionDb c GROUP BY c.seccionTematica")
+       List<Object[]> countPorSeccion();
 
-    @Query("SELECT CAST(c.fechaCreacion AS date), COUNT(c) FROM ConversacionDb c " +
-           "WHERE c.fechaCreacion BETWEEN :desde AND :hasta " +
-           "GROUP BY CAST(c.fechaCreacion AS date) ORDER BY 1")
-    List<Object[]> actividadPorFecha(@Param("desde") LocalDateTime desde,
-                                     @Param("hasta") LocalDateTime hasta);
+       @Query("SELECT CAST(c.fechaCreacion AS date), COUNT(c) FROM ConversacionDb c " +
+                     "WHERE c.fechaCreacion BETWEEN :desde AND :hasta " +
+                     "GROUP BY CAST(c.fechaCreacion AS date) ORDER BY 1")
+       List<Object[]> actividadPorFecha(@Param("desde") LocalDateTime desde,
+                     @Param("hasta") LocalDateTime hasta);
 }
