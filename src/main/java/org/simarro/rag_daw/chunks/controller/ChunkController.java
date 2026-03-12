@@ -109,26 +109,29 @@ public class ChunkController {
     /**
      * Búsqueda semántica: busca chunks similares por significado usando embeddings.
      * Internamente usa VectorStore.similaritySearch() (caja negra del profesor).
-     * 
+     *
      * Body: { "consulta": "texto libre en lenguaje natural", "topK": 5 }
      * Response: lista de chunks ordenados por similitud descendente,
      * cada uno con su score de similitud (0.0 a 1.0).
      */
     @PostMapping("/busqueda-semantica")
-    public ResponseEntity<?> busquedaSemantica(@RequestBody Map<String, Object> body) throws ResourceNotFoundException {
+    public ResponseEntity<?> busquedaSemantica(@RequestBody Map<String, Object> body)
+            throws ResourceNotFoundException, FiltroException {
+
         if (body == null || body.get("consulta") == null || body.get("consulta").toString().isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "La consulta es obligatoria"));
+            throw new FiltroException("CONSULTA_REQUERIDA", "La consulta es obligatoria", null);
         }
 
         if (body.containsKey("topK") && body.get("topK") != null) {
             Object topKObj = body.get("topK");
             if (!(topKObj instanceof Number)) {
-                return ResponseEntity.badRequest().body(Map.of("error", "topK debe ser numérico"));
+                throw new FiltroException("TOPK_TIPO_INVALIDO", "topK debe ser numérico", null);
             }
-
             int topK = ((Number) topKObj).intValue();
             if (topK < 1 || topK > 10) {
-                return ResponseEntity.badRequest().body(Map.of("error", "topK debe estar entre 1 y 10"));
+                throw new FiltroException("TOPK_RANGO_INVALIDO",
+                        "topK debe estar entre 1 y 10",
+                        "Valor recibido: " + topK);
             }
         }
 
@@ -140,10 +143,8 @@ public class ChunkController {
      * - totalChunks, chunksPorEstado, longitudMedia, longitudMax, longitudMin
      */
     @GetMapping("/documento/{docId}/stats")
-    public ResponseEntity<?> getChunkStats(@PathVariable Long docId) {
-        // TODO ALUMNO: chunkService.getEstadisticas(docId)
-        throw new UnsupportedOperationException(
-                "GET /api/v1/chunks/documento/{docId}/stats — No implementado (Equipo 2)");
+    public ResponseEntity<?> getChunkStats(@PathVariable @Positive Long docId) {
+        return ResponseEntity.ok(chunkService.getChunkStats(docId));
     }
 
     /**
@@ -152,11 +153,18 @@ public class ChunkController {
      */
     @PatchMapping("/{id}/estado")
     public ResponseEntity<?> cambiarEstado(
-            @PathVariable Long id,
-            @RequestBody Map<String, String> body) {
-        // String nuevoEstado = body.get("estado");
-        // TODO ALUMNO: chunkService.cambiarEstado(id, nuevoEstado)
-        throw new UnsupportedOperationException(
-                "PATCH /api/v1/chunks/{id}/estado — No implementado (Equipo 2)");
+            @PathVariable @Positive Long id,
+            @RequestBody Map<String, String> body) throws FiltroException {
+        if (body == null || body.get("estado") == null || body.get("estado").isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "El estado es obligatorio"));
+        }
+
+        String nuevoEstado = body.get("estado").trim().toUpperCase();
+        if (!ESTADOS_VALIDOS.contains(nuevoEstado)) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "estado debe ser PENDIENTE, REVISADO o DESCARTADO"));
+        }
+
+        return ResponseEntity.ok(chunkService.cambiarEstado(id, nuevoEstado));
     }
 }
