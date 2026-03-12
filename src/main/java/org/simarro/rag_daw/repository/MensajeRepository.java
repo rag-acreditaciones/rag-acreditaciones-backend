@@ -3,6 +3,8 @@ package org.simarro.rag_daw.repository;
 import java.util.List;
 
 import org.simarro.rag_daw.model.db.MensajeDb;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface MensajeRepository extends JpaRepository<MensajeDb, Long> {
@@ -12,4 +14,8 @@ public interface MensajeRepository extends JpaRepository<MensajeDb, Long> {
 
     // Borrar todos los mensajes de una conversación (si se elimina la conversación)
     void deleteByConversacionId(Long conversacionId);
+
+    Page<MensajeDb> findByConversacionIdOrderByFechaAsc(Long conversacionId, Pageable pageable);
+
+    long countByConversacionId(Long conversacionId);
 }
