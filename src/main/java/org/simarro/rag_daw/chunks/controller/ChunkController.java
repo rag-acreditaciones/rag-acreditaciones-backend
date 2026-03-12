@@ -115,13 +115,24 @@ public class ChunkController {
      * cada uno con su score de similitud (0.0 a 1.0).
      */
     @PostMapping("/busqueda-semantica")
-    public ResponseEntity<?> busquedaSemantica(@RequestBody Map<String, Object> body) {
-        // String consulta = (String) body.get("consulta");
-        // int topK = body.containsKey("topK") ? ((Number) body.get("topK")).intValue()
-        // : 5;
-        // TODO ALUMNO: chunkService.busquedaSemantica(consulta, topK)
-        throw new UnsupportedOperationException(
-                "POST /api/v1/chunks/busqueda-semantica — No implementado (Equipo 2)");
+    public ResponseEntity<?> busquedaSemantica(@RequestBody Map<String, Object> body) throws ResourceNotFoundException {
+        if (body == null || body.get("consulta") == null || body.get("consulta").toString().isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "La consulta es obligatoria"));
+        }
+
+        if (body.containsKey("topK") && body.get("topK") != null) {
+            Object topKObj = body.get("topK");
+            if (!(topKObj instanceof Number)) {
+                return ResponseEntity.badRequest().body(Map.of("error", "topK debe ser numérico"));
+            }
+
+            int topK = ((Number) topKObj).intValue();
+            if (topK < 1 || topK > 10) {
+                return ResponseEntity.badRequest().body(Map.of("error", "topK debe estar entre 1 y 10"));
+            }
+        }
+
+        return ResponseEntity.ok(chunkService.busquedaSemantica(body));
     }
 
     /**
