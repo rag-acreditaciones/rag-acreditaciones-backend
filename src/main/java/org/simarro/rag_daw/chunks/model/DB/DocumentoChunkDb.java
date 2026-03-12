@@ -3,6 +3,7 @@ package org.simarro.rag_daw.chunks.model.DB;
 import java.util.UUID;
 
 import org.simarro.rag_daw.chunks.model.ENUMS.EstadoChunk;
+import org.simarro.rag_daw.documentos.model.db.DocumentoDb;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -29,7 +30,7 @@ public class DocumentoChunkDb {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(name = "orden_chunk", nullable = false)
-    private String orden;
+    private Integer orden;
     @Column(name = "texto_chunk", columnDefinition = "TEXT", nullable = false)
     private String textoCompleto;
     @Enumerated(EnumType.STRING)
@@ -39,11 +40,12 @@ public class DocumentoChunkDb {
     private Integer numTokens;
     @Column(name = "vector_store_id", nullable = false)
     private UUID vectorStoreId;
-    // @ManyToOne
-    // @JoinColumn(name = "documento_id", nullable = false)
-    // private DocumentoDB documentos;
+    @ManyToOne
+    @JoinColumn(name = "documento_id", nullable = false)
+    private DocumentoDb documentos;
 
 }
+
 /*
 CREATE TABLE IF NOT EXISTS chunks (
     id        UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
