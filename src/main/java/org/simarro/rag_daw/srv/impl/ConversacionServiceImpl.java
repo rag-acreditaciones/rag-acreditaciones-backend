@@ -8,26 +8,28 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+
 import org.simarro.rag_daw.model.db.ConversacionDb;
 import org.simarro.rag_daw.model.db.MensajeDb;
 import org.simarro.rag_daw.model.dto.ConversacionCreateDTO;
 import org.simarro.rag_daw.model.dto.ConversacionDetailDTO;
 import org.simarro.rag_daw.model.dto.ConversacionResponseDTO;
 import org.simarro.rag_daw.model.enums.EstadoConversacion;
+import org.simarro.rag_daw.rag.model.dto.ChatResponseDTO;
+import org.simarro.rag_daw.rag.srv.ChatRagService;
 import org.simarro.rag_daw.repository.ConversacionRepository;
 import org.simarro.rag_daw.repository.MensajeRepository;
 import org.simarro.rag_daw.srv.ConversacionService;
 
 @Service
+@RequiredArgsConstructor
 public class ConversacionServiceImpl implements ConversacionService {
 
     private final ConversacionRepository conversacionRepository;
     private final MensajeRepository mensajeRepository;
-
-    public ConversacionServiceImpl(ConversacionRepository conversacionRepository, MensajeRepository mensajeRepository) {
-        this.conversacionRepository = conversacionRepository;
-        this.mensajeRepository = mensajeRepository;
-    }
+    private final ChatRagService chatRagService;
 
     @Override
     public ConversacionDetailDTO crearConversacion(@NonNull ConversacionCreateDTO dto) {
@@ -124,6 +126,7 @@ public class ConversacionServiceImpl implements ConversacionService {
 
     @SuppressWarnings("null")
     @Override
+    @Transactional
     public boolean eliminarConversacion(@NonNull Long conversacionId,@NonNull Long usuarioId) {
         Optional<ConversacionDb> conversacion = conversacionRepository.findById(conversacionId);
 
@@ -134,4 +137,19 @@ public class ConversacionServiceImpl implements ConversacionService {
         }
         return false;
     }
+
+    @Override
+    public String generarTitulo(@NonNull String primerMensaje) {
+        String prompt = """
+                Genera un título corto y descriptivo (máximo 6 palabras) para una conversación 
+                que empieza con este mensaje: "%s".
+                Responde SOLO con el título, sin comillas ni explicaciones.
+                """.formatted(primerMensaje);
+
+        ChatResponseDTO response = chatRagService.preguntar(prompt, null);
+        String titulo = response.respuesta().trim();
+
+        // Seguridad: si la IA devuelve algo muy largo, recortamos
+        return titulo.length() > 60 ? titulo.substring(0, 60) + "…" : titulo;
+}
 }
