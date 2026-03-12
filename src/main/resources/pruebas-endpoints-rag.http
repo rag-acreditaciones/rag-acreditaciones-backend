@@ -60,7 +60,7 @@ Content-Type: application/json
 # @token = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjYW5kaWRhdG9AZXhhbXBsZS5jb20iLCJpYXQiOjE3NzMxNTcxNTEsImV4cCI6MTc3MzE5MzE1MX0.4VONgd4OjNvchJ_W6V48V72VDS-ApwQgO1acWTyek_I
 #.PEGAR_AQUI_EL_TOKEN_COMPLETO
 
-@token = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjYW5kaWRhdG9AZXhhbXBsZS5jb20iLCJpYXQiOjE3NzMzMDQ0MjUsImV4cCI6MTc3MzM0MDQyNX0.W3wMaI9drbq6KuT8oESzxFc1gfcbVeT51VVMVaE4v7s
+@token = {{login.response.body.token}}
 
 
 ## ═══════════════════════════════════════════════════════════════════════════
@@ -536,7 +536,7 @@ Authorization: Bearer {{token}}
 
 ###
 ## 61. Actividad diaria de preguntas (line chart)
-GET {{baseUrl}}/api/v1/dashboard/chats/actividad-diaria?fechaDesde=2025-01-01&fechaHasta=2025-06-30 HTTP/1.1
+GET {{baseUrl}}/api/v1/dashboard/chats/actividad-diaria?fechaDesde=2026-01-01&fechaHasta=2026-06-30 HTTP/1.1
 Authorization: Bearer {{token}}
 
 ###
