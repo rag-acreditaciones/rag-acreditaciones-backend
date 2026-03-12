@@ -5,6 +5,7 @@ public enum RolNombre {
         ROLE_USER("Usuario estándar"),
         ROLE_MODERATOR("Moderador con permisos intermedios"),
         ROLE_ENTRENADOR("Entrenador de un club de futbol"),
+        ROLE_SUPERVISOR("Supervisor de un club de futbol"),
         ROLE_JUGADOR("Jugador de un equipo de futbol"),
         ROLE_ARBITRO("Arbitro de un partido"),
         ROLE_CANDIDATO("Candidato a una acreditación"),
