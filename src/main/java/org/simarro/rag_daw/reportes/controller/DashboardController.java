@@ -4,15 +4,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 // ── Imports que necesitaréis cuando implementéis ──
-// import org.simarro.rag_daw.reportes.srv.DashboardService;
-// import org.simarro.rag_daw.reportes.model.dto.DashboardResumenDTO;
-// import org.simarro.rag_daw.reportes.model.dto.DistribucionDTO;
-// import org.simarro.rag_daw.reportes.model.dto.EvolucionDTO;
-// import org.simarro.rag_daw.reportes.model.dto.ActividadDiariaDTO;
-// import org.simarro.rag_daw.reportes.model.dto.HorasPuntaDTO;
-// import org.simarro.rag_daw.reportes.model.dto.RankingUsuarioDTO;
-// import org.simarro.rag_daw.reportes.model.dto.ActividadRecienteDTO;
-// import java.util.List;
+import org.simarro.rag_daw.reportes.srv.DashboardService;
+import org.simarro.rag_daw.reportes.model.dto.DashboardResumenDTO;
+import org.simarro.rag_daw.reportes.model.dto.DistribucionDTO;
+import org.simarro.rag_daw.reportes.model.dto.EvolucionDTO;
+import org.simarro.rag_daw.reportes.model.dto.ActividadDiariaDTO;
+import org.simarro.rag_daw.reportes.model.dto.HorasPuntaDTO;
+import org.simarro.rag_daw.reportes.model.dto.RankingUsuarioDTO;
+import org.simarro.rag_daw.reportes.model.dto.ActividadRecienteDTO;
+import java.util.List;
 
 /**
  * Controlador REST para dashboard e informes — EQUIPO 5
@@ -39,12 +39,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/dashboard")
 public class DashboardController {
 
-    // TODO ALUMNO: Descomentar cuando creéis DashboardService
-    // private final DashboardService dashboardService;
-    //
-    // public DashboardController(DashboardService dashboardService) {
-    //     this.dashboardService = dashboardService;
-    // }
+    private final DashboardService dashboardService;
+    
+    public DashboardController(DashboardService dashboardService) {
+         this.dashboardService = dashboardService;
+    }
 
     // ═══════════════════════════════════════════════════════════════════
     //  RESUMEN GLOBAL (KPIs)
@@ -56,10 +55,8 @@ public class DashboardController {
      *             totalPreguntas, totalUsuarios, ratioCalidad }
      */
     @GetMapping("/resumen")
-    public ResponseEntity<?> getResumen() {
-        // TODO ALUMNO: dashboardService.getResumenGlobal()
-        throw new UnsupportedOperationException(
-            "GET /api/v1/dashboard/resumen — No implementado (Equipo 5)");
+    public ResponseEntity<DashboardResumenDTO> getResumen() {
+        return ResponseEntity.ok(dashboardService.getResumenGlobal());
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -71,10 +68,8 @@ public class DashboardController {
      * Response: [{ seccion: "BD", count: 15 }, { seccion: "WEB", count: 8 }, ...]
      */
     @GetMapping("/documentos/por-seccion")
-    public ResponseEntity<?> getDocsPorSeccion() {
-        // TODO ALUMNO: dashboardService.getDocumentosPorSeccion()
-        throw new UnsupportedOperationException(
-            "GET /api/v1/dashboard/documentos/por-seccion — No implementado (Equipo 5)");
+    public ResponseEntity<List <DistribucionDTO>> getDocsPorSeccion() {
+        return ResponseEntity.ok(dashboardService.getDocumentosPorSeccion());
     }
 
     /**
@@ -82,10 +77,8 @@ public class DashboardController {
      * Response: [{ estado: "PROCESADO", count: 20 }, { estado: "ERROR", count: 2 }, ...]
      */
     @GetMapping("/documentos/por-estado")
-    public ResponseEntity<?> getDocsPorEstado() {
-        // TODO ALUMNO: dashboardService.getDocumentosPorEstado()
-        throw new UnsupportedOperationException(
-            "GET /api/v1/dashboard/documentos/por-estado — No implementado (Equipo 5)");
+    public ResponseEntity<List <DistribucionDTO>> getDocsPorEstado() {
+        return ResponseEntity.ok(dashboardService.getDocumentosPorEstado());
     }
 
     /**
@@ -94,13 +87,11 @@ public class DashboardController {
      * Response: [{ periodo: "2025-01-15", count: 3 }, ...]
      */
     @GetMapping("/documentos/evolucion")
-    public ResponseEntity<?> getDocsEvolucion(
+    public ResponseEntity<List <EvolucionDTO>> getDocsEvolucion(
             @RequestParam String fechaDesde,
             @RequestParam String fechaHasta,
             @RequestParam(defaultValue = "SEMANA") String agrupacion) {
-        // TODO ALUMNO: dashboardService.getDocumentosEvolucion(fechaDesde, fechaHasta, agrupacion)
-        throw new UnsupportedOperationException(
-            "GET /api/v1/dashboard/documentos/evolucion — No implementado (Equipo 5)");
+        return ResponseEntity.ok(dashboardService.getDocumentosEvolucion(fechaDesde, fechaHasta, agrupacion));
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -112,10 +103,8 @@ public class DashboardController {
      * Response: [{ seccion: "BD", count: 45 }, ...]
      */
     @GetMapping("/chats/por-seccion")
-    public ResponseEntity<?> getChatsPorSeccion() {
-        // TODO ALUMNO: dashboardService.getChatsPorSeccion()
-        throw new UnsupportedOperationException(
-            "GET /api/v1/dashboard/chats/por-seccion — No implementado (Equipo 5)");
+    public ResponseEntity<List <DistribucionDTO>> getChatsPorSeccion() {
+        return ResponseEntity.ok(dashboardService.getChatsPorSeccion());
     }
 
     /**
@@ -124,12 +113,10 @@ public class DashboardController {
      * Response: [{ fecha: "2025-03-15", preguntas: 12 }, ...]
      */
     @GetMapping("/chats/actividad-diaria")
-    public ResponseEntity<?> getActividadDiaria(
+    public ResponseEntity<List<ActividadDiariaDTO>> getActividadDiaria(
             @RequestParam String fechaDesde,
             @RequestParam String fechaHasta) {
-        // TODO ALUMNO: dashboardService.getActividadDiaria(fechaDesde, fechaHasta)
-        throw new UnsupportedOperationException(
-            "GET /api/v1/dashboard/chats/actividad-diaria — No implementado (Equipo 5)");
+        return ResponseEntity.ok(dashboardService.getActividadDiaria(fechaDesde, fechaHasta));
     }
 
     /**
@@ -138,10 +125,8 @@ public class DashboardController {
      * Las horas van de 0 a 23.
      */
     @GetMapping("/chats/horas-punta")
-    public ResponseEntity<?> getHorasPunta() {
-        // TODO ALUMNO: dashboardService.getHorasPunta()
-        throw new UnsupportedOperationException(
-            "GET /api/v1/dashboard/chats/horas-punta — No implementado (Equipo 5)");
+    public ResponseEntity<List<HorasPuntaDTO>> getHorasPunta() {
+        return ResponseEntity.ok(dashboardService.getHorasPunta());
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -154,12 +139,10 @@ public class DashboardController {
      * Response: [{ email, nombre, docsSubidos, conversaciones, total }]
      */
     @GetMapping("/usuarios/ranking")
-    public ResponseEntity<?> getRankingUsuarios(
+    public ResponseEntity<List<RankingUsuarioDTO>> getRankingUsuarios(
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(defaultValue = "TOTAL") String criterio) {
-        // TODO ALUMNO: dashboardService.getRankingUsuarios(limit, criterio)
-        throw new UnsupportedOperationException(
-            "GET /api/v1/dashboard/usuarios/ranking — No implementado (Equipo 5)");
+        return ResponseEntity.ok(dashboardService.getRankingUsuarios(limit, criterio));
     }
 
     /**
@@ -167,10 +150,8 @@ public class DashboardController {
      * Response: [{ rol: "CANDIDATO", count: 50 }, { rol: "ASESOR", count: 10 }, ...]
      */
     @GetMapping("/usuarios/por-rol")
-    public ResponseEntity<?> getUsuariosPorRol() {
-        // TODO ALUMNO: dashboardService.getUsuariosPorRol()
-        throw new UnsupportedOperationException(
-            "GET /api/v1/dashboard/usuarios/por-rol — No implementado (Equipo 5)");
+    public ResponseEntity<List <DistribucionDTO>> getUsuariosPorRol() {
+        return ResponseEntity.ok(dashboardService.getUsuariosPorRol());
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -187,9 +168,7 @@ public class DashboardController {
      * y reportes, ordenado por fecha descendente, LIMIT 20.
      */
     @GetMapping("/actividad-reciente")
-    public ResponseEntity<?> getActividadReciente() {
-        // TODO ALUMNO: dashboardService.getActividadReciente()
-        throw new UnsupportedOperationException(
-            "GET /api/v1/dashboard/actividad-reciente — No implementado (Equipo 5)");
+    public ResponseEntity<List<ActividadRecienteDTO>> getActividadReciente() {
+        return ResponseEntity.ok(dashboardService.getActividadReciente());
     }
 }

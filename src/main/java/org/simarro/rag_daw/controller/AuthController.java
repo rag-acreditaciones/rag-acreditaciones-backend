@@ -11,13 +11,19 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.simarro.rag_daw.model.db.RolDb;
+import org.simarro.rag_daw.model.db.UsuarioDb;
 import org.simarro.rag_daw.model.dto.LoginUsuario;
 import org.simarro.rag_daw.model.dto.Mensaje;
+import org.simarro.rag_daw.model.enums.RolNombre;
 import org.simarro.rag_daw.security.dto.JwtDto;
+import org.simarro.rag_daw.security.dto.NuevoUsuario;
 import org.simarro.rag_daw.security.service.JwtService;
 import org.simarro.rag_daw.security.service.RolService;
 import org.simarro.rag_daw.security.service.UsuarioService;
 import jakarta.validation.Valid;
+import java.util.HashSet;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/auth")
@@ -40,30 +46,27 @@ public class AuthController {
     @Autowired
     JwtService jwtProvider;
 
- /**   
     @PostMapping("/nuevo")
-    public ResponseEntity<?> nuevo(@Valid @RequestBody NuevoUsuario nuevoUsuario, BindingResult bindingResult){
+    public ResponseEntity<Object> nuevo(@Valid @RequestBody NuevoUsuario nuevoUsuario, BindingResult bindingResult){
         if(bindingResult.hasErrors())
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Mensaje("Datos incorrectos o email inválido"));
-        if(usuarioService.existsByNickname(nuevoUsuario.getNickname()))
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Mensaje("El nickname del usuario ya existe"));
         if(usuarioService.existsByEmail(nuevoUsuario.getEmail()))
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Mensaje("El email del usuario ya existe"));
-        UsuarioDb usuarioDb =
-                new UsuarioDb(nuevoUsuario.getNombre(), nuevoUsuario.getNickname(), nuevoUsuario.getEmail(),
-                        passwordEncoder.encode(nuevoUsuario.getPassword()));
+        UsuarioDb usuarioDb = new UsuarioDb(nuevoUsuario.getNombre(), nuevoUsuario.getEmail(),
+                passwordEncoder.encode(nuevoUsuario.getPassword()));
         Set<RolDb> rolesDb = new HashSet<>();
-        rolesDb.add(rolService.getByRolNombre(RolNombre.ROLE_CANDIDATO).get());
-        if(nuevoUsuario.getRoles().contains("ROLE_ADMIN")) //nO RECOMENDADO EN UNA BD DE PRODUCCIÓN
-            rolesDb.add(rolService.getByRolNombre(RolNombre.ROLE_ADMIN).get());
+        rolesDb.add(rolService.getByRolNombre(RolNombre.ROLE_CANDIDATO)
+                .orElseThrow(() -> new RuntimeException("Rol CANDIDATO no encontrado")));
+        if(nuevoUsuario.getRoles().contains("ROLE_ADMINISTRADOR"))
+            rolesDb.add(rolService.getByRolNombre(RolNombre.ROLE_ADMINISTRADOR)
+                    .orElseThrow(() -> new RuntimeException("Rol ADMINISTRADOR no encontrado")));
         usuarioDb.setRoles(rolesDb);
         usuarioService.save(usuarioDb);
         return ResponseEntity.status(HttpStatus.CREATED).body(new Mensaje("Usuario creado"));
     }
-**/
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginUsuario loginUsuario, BindingResult bindingResult){
+    public ResponseEntity<Object> login(@Valid @RequestBody LoginUsuario loginUsuario, BindingResult bindingResult){
         if(bindingResult.hasErrors())
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Mensaje("Datos incorrectos"));
         Authentication authentication =
