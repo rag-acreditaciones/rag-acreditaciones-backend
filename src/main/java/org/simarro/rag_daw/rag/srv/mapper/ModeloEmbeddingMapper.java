@@ -9,9 +9,9 @@ import org.simarro.rag_daw.rag.model.dto.ModeloEmbeddingDTO;
 @Mapper(componentModel = "spring")
 public interface ModeloEmbeddingMapper {
 
-    ModeloEmbeddingDTO modeloEmbeddingDbToModeloEmbeddingDTO(
-            ModeloEmbeddingDb modeloEmbeddingDb);
+        ModeloEmbeddingDTO modeloEmbeddingDbToModeloEmbeddingDTO(
+                        ModeloEmbeddingDb modeloEmbeddingDb);
 
-    List<ModeloEmbeddingDTO> modeloEmbeddingDbListToModeloEmbeddingDTOList(
-            List<ModeloEmbeddingDb> modeloEmbeddingDbList);
+        List<ModeloEmbeddingDTO> modeloEmbeddingDbListToModeloEmbeddingDTOList(
+                        List<ModeloEmbeddingDb> modeloEmbeddingDbList);
 }
