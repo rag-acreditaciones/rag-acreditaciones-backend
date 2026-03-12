@@ -14,8 +14,8 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.reader.pdf.PagePdfDocumentReader;
 import org.springframework.ai.reader.pdf.config.PdfDocumentReaderConfig;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
-import org.springframework.core.io.Resource;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -29,14 +29,14 @@ public class IngestaServiceImpl implements IngestaService {
 
     @Override
     public IngestaResultDTO procesarPdf(byte[] pdfBytes,
-                                         DocumentoMetadataDTO metadata) {
+            DocumentoMetadataDTO metadata) {
         return procesarPdf(pdfBytes, metadata, null);
     }
 
     @Override
     public IngestaResultDTO procesarPdf(byte[] pdfBytes,
-                                         DocumentoMetadataDTO metadata,
-                                         Long ragConfiguracionId) {
+            DocumentoMetadataDTO metadata,
+            Long ragConfiguracionId) {
         // 1. Obtener el bundle de clientes para este RAG
         RagClientBundle bundle = ragDynamicConfig.crearClienteRag(ragConfiguracionId);
         RagConfiguracionDb config = bundle.configuracion();
@@ -44,9 +44,9 @@ public class IngestaServiceImpl implements IngestaService {
         // 2. Leer PDF (una página = un documento)
         Resource pdfResource = new ByteArrayResource(pdfBytes);
         var lectorPdf = new PagePdfDocumentReader(pdfResource,
-            PdfDocumentReaderConfig.builder()
-                .withPagesPerDocument(1)
-                .build());
+                PdfDocumentReaderConfig.builder()
+                        .withPagesPerDocument(1)
+                        .build());
 
         // 3. Dividir en chunks por tokens
         var splitter = new TokenTextSplitter(800, 350, 5, 200, true);
@@ -71,14 +71,14 @@ public class IngestaServiceImpl implements IngestaService {
 
         // 6. Extraer UUIDs generados
         List<String> ids = chunks.stream()
-            .map(Document::getId)
-            .collect(Collectors.toList());
+                .map(Document::getId)
+                .collect(Collectors.toList());
 
         return new IngestaResultDTO(
-            chunks.size(), ids,
-            chunks.stream().mapToInt(c -> c.getText().length() / 4).sum(),
-            config.getId(), config.getNombre(),
-            config.getModeloEmbedding().getModeloId(),
-            config.getModeloEmbedding().getDimensiones());
+                chunks.size(), ids,
+                chunks.stream().mapToInt(c -> c.getText().length() / 4).sum(),
+                config.getId(), config.getNombre(),
+                config.getModeloEmbedding().getModeloId(),
+                config.getModeloEmbedding().getDimensiones());
     }
 }

@@ -163,8 +163,7 @@ public class DocumentoServiceImpl implements DocumentoService {
 
             // Excluir documentos ELIMINADOS por defecto
             if (!tieneFiltoEstado) {
-                spec = spec.and((root, query, cb) ->
-                        cb.notEqual(root.get("estado"), EstadoDocumento.ELIMINADO));
+                spec = spec.and((root, query, cb) -> cb.notEqual(root.get("estado"), EstadoDocumento.ELIMINADO));
             }
 
             Page<DocumentoDb> resultado = documentoRepository.findAll(spec, pageable);

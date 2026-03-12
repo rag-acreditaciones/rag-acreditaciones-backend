@@ -222,3 +222,28 @@ INSERT INTO secciones_tematicas (nombre, descripcion, codigo_color) VALUES
 ('BD',            'Bases de datos relacionales y no relacionales',       '#3B82F6'),
 ('PROGRAMACION',  'Programacion orientada a objetos y estructurada',    '#10B981'),
 ('WEB',           'Desarrollo web frontend y backend',                  '#F59E0B');
+
+
+-- Inserts mensajes para pruebas de valoraciones (tests 41-45)
+INSERT INTO mensajes (id, conversacion_id, tipo, contenido, chunks_utilizados, fecha) VALUES
+-- Conversación 1
+(1, 1, 'PREGUNTA', '¿Qué es el PEAC?', '[]', NOW()),
+(2, 1, 'RESPUESTA', 'El PEAC es el procedimiento de evaluación y acreditación de competencias.', '[]', NOW()),
+(3, 1, 'PREGUNTA', '¿Qué requisitos hay?', '[]', NOW()),
+(4, 1, 'RESPUESTA', 'Debes presentar experiencia laboral o formación.', '[]', NOW()),
+
+-- Conversación 2
+(5, 2, 'PREGUNTA', '¿Cuánto dura el proceso PEAC?', '[]', NOW()),
+(6, 2, 'RESPUESTA', 'El proceso puede durar varios meses dependiendo de la comunidad.', '[]', NOW()),
+(7, 2, 'PREGUNTA', '¿Dónde puedo solicitarlo?', '[]', NOW()),
+(8, 2, 'RESPUESTA', 'Debes solicitarlo en el organismo autonómico correspondiente.', '[]', NOW()),
+
+-- Conversación 3
+(9, 3, 'PREGUNTA', '¿Qué documentos necesito para acreditar competencias?', '[]', NOW()),
+(10, 3, 'RESPUESTA', 'Debes presentar certificados de empresa o formación.', '[]', NOW()),
+(11, 3, 'PREGUNTA', '¿Cuántos años de experiencia se requieren?', '[]', NOW()),
+(12, 3, 'RESPUESTA', 'Normalmente entre 2 y 3 años dependiendo de la cualificación.', '[]', NOW()),
+
+-- Conversación 4
+(13, 4, 'PREGUNTA', '¿Dónde consultar convocatorias PEAC?', '[]', NOW()),
+(14, 4, 'RESPUESTA', 'En la web del ministerio o de tu comunidad autónoma.', '[]', NOW());

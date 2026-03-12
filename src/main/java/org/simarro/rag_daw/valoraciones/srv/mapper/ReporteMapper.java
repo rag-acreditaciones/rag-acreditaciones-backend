@@ -13,6 +13,6 @@ public interface ReporteMapper {
 
     @Mapping(target = "motivo", expression = "java(entity.getMotivo().name())")
     @Mapping(target = "estado", expression = "java(entity.getEstado().name())")
-    @Mapping(target = "usuarioEmail", ignore = true) // Se asigna después desde el servicio
+    @Mapping(target = "usuarioEmail", ignore = true) 
     ReporteDTO toDTO(ReporteRespuestaDb entity);
 }

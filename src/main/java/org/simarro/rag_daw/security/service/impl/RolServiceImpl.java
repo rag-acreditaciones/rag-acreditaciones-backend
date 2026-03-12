@@ -11,19 +11,18 @@ import org.simarro.rag_daw.repository.RolRepository;
 import org.simarro.rag_daw.security.service.RolService;
 
 @Service
-@Transactional//Mantiene la coherencia de la BD si hay varios accesos de escritura concurrentes
+@Transactional // Mantiene la coherencia de la BD si hay varios accesos de escritura
+               // concurrentes
 public class RolServiceImpl implements RolService {
 
     @Autowired
     RolRepository rolRepository;
 
-    public Optional<RolDb> getByRolNombre(RolNombre rolNombre){
+    public Optional<RolDb> getByRolNombre(RolNombre rolNombre) {
         return rolRepository.findByNombre(rolNombre);
     }
 
-    public void save(@NonNull RolDb rol){
+    public void save(@NonNull RolDb rol) {
         rolRepository.save(rol);
     }
 }
-
-

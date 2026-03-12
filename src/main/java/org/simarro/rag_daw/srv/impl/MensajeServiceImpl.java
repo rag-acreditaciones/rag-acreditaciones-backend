@@ -59,14 +59,16 @@ public class MensajeServiceImpl implements MensajeService {
         // 4. Invocar el ChatRagService
         ChatResponseDTO chatResponse = chatRagService.preguntar(
                 preguntaDTO.getPregunta(),
-                preguntaDTO.getSeccionTematica()
-        );
+                preguntaDTO.getSeccionTematica());
 
         // 5. Convertir chunk IDs de String a Long
         List<Long> chunkIds = chatResponse.chunksUtilizadosIds().stream()
                 .map(id -> {
-                    try { return Long.parseLong(id); }
-                    catch (NumberFormatException e) { return null; }
+                    try {
+                        return Long.parseLong(id);
+                    } catch (NumberFormatException e) {
+                        return null;
+                    }
                 })
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
@@ -117,7 +119,6 @@ public class MensajeServiceImpl implements MensajeService {
                 db.getTipo(),
                 db.getContenido(),
                 db.getChunksUtilizados(),
-                db.getFecha()
-        );
+                db.getFecha());
     }
 }

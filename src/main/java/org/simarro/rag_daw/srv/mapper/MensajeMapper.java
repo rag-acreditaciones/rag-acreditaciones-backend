@@ -13,9 +13,11 @@ public interface MensajeMapper {
 
     // Entity ↔ DTO completo
     MensajeDTO toDTO(MensajeDb entity);
+
     MensajeDb toEntity(MensajeDTO dto);
 
     List<MensajeDTO> toDTOList(List<MensajeDb> entities);
+
     List<MensajeDb> toEntityList(List<MensajeDTO> dtos);
 
     // Mapper para el DTO simple (solo contenido)
