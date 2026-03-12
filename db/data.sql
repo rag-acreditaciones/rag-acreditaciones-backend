@@ -172,20 +172,20 @@ VALUES
 -- ============================================
 -- DATOS PARA REPORTES (tests 46-50)
 -- ============================================
-INSERT INTO reportes_respuesta (mensaje_id, usuario_id, motivo, estado, descripcion, fecha_creacion)
+INSERT INTO reportes_respuesta (mensaje_id, usuario_id, motivo, estado, fecha_creacion)
 VALUES 
 -- Para test 46 (reporte de mensaje_id=4)
-(4, 1, 'INCORRECTA', 'PENDIENTE', 'La información sobre plazos está desactualizada, los plazos cambiaron en 2024', '2025-03-20 10:00:00'),
+(4, 1, 'INCORRECTA', 'PENDIENTE', '2025-03-20 10:00:00'),
 
 -- Para test 47 (reporte de mensaje_id=6)
-(6, 2, 'INCOMPLETA', 'PENDIENTE', 'Falta mencionar la documentación necesaria del módulo de BD', '2025-04-05 11:30:00'),
+(6, 2, 'INCOMPLETA', 'PENDIENTE', '2025-04-05 11:30:00'),
 
 -- Datos adicionales para tests de listado y filtros
-(2, 3, 'INCORRECTA', 'REVISADO', 'Error en los datos', '2025-01-18 12:00:00'),
-(3, 2, 'INCOMPLETA', 'PENDIENTE', 'Faltan ejemplos', '2025-02-10 09:00:00'),
-(5, 1, 'IRRELEVANTE', 'PENDIENTE', 'No responde a la pregunta', '2025-03-05 14:00:00'),
-(7, 3, 'OFENSIVA', 'REVISADO', 'Lenguaje inapropiado', '2025-04-10 15:30:00'),
-(1, 2, 'INCORRECTA', 'PENDIENTE', 'Datos incorrectos', '2025-05-15 16:45:00');
+(2, 3, 'INCORRECTA', 'REVISADO', '2025-01-18 12:00:00'),
+(3, 2, 'INCOMPLETA', 'PENDIENTE', '2025-02-10 09:00:00'),
+(5, 1, 'IRRELEVANTE', 'PENDIENTE', '2025-03-05 14:00:00'),
+(7, 3, 'OFENSIVA', 'REVISADO', '2025-04-10 15:30:00'),
+(1, 2, 'INCORRECTA', 'PENDIENTE', '2025-05-15 16:45:00');
 
 -- ============================================
 -- ACTUALIZAR SECUENCIAS (importante para que los IDs sigan el orden)
