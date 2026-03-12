@@ -21,7 +21,7 @@ public interface ChunkMapper {
         ChunkMapper INSTANCE = Mappers.getMapper(ChunkMapper.class);
 
         // DC -- CBDTO
-        @Mapping(target = "documento", source = "documento")
+        @Mapping(target = "documento", source = "documentos")
         @Mapping(target = "texto", source = "textoCompleto")
         ChunkBusquedaDTO documentoChunkToChunkBusquedaDTO(DocumentoChunkDb docChunk);
 
