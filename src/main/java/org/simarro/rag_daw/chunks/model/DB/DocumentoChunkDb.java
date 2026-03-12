@@ -45,17 +45,3 @@ public class DocumentoChunkDb {
     private DocumentoDb documentos;
 
 }
-
-/*
-CREATE TABLE IF NOT EXISTS chunks (
-    id        UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    orden_chunk   TEXT NOT NULL,
-    texto_chunk   TEXT NOT NULL,
-    estado_chunk   VARCHAR(20) NOT NULL  DEFAULT 'PENDIENTE',
-  CONSTRAINT usuarios_estado_check CHECK (estado IN (
-    'PENDIENTE','REVISADO','DESCARTADO')),
-    num_tokens  INTEGER NOT NULL,
-    vector_id  UUID NOT NULL,
-    documento_id UUID NOT NULL REFERENCES documentos(id) ON DELETE CASCADE
-);
-*/
