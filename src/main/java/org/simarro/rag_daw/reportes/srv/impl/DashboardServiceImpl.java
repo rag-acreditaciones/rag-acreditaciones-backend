@@ -1,7 +1,11 @@
 package org.simarro.rag_daw.reportes.srv.impl;
 
+import org.simarro.rag_daw.reportes.repository.DashboardChunkRepository;
+import org.simarro.rag_daw.reportes.repository.DashboardConversacionRepository;
 import org.simarro.rag_daw.reportes.repository.DashboardDocumentoRepository;
+import org.simarro.rag_daw.reportes.repository.DashboardMensajeRepository;
 import org.simarro.rag_daw.reportes.repository.DashboardUsuarioRepository;
+import org.simarro.rag_daw.reportes.repository.DashboardValoracionesRepository;
 import org.simarro.rag_daw.reportes.model.dto.*;
 import org.simarro.rag_daw.reportes.srv.DashboardService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,17 +24,28 @@ public class DashboardServiceImpl implements DashboardService {
     @Autowired
     private DashboardUsuarioRepository usuarioRepo;
 
+    @Autowired
+    private DashboardValoracionesRepository valoracionRepo;
+
+    @Autowired
+    private DashboardChunkRepository chunkRepo;
+
+    @Autowired
+    private DashboardConversacionRepository conversacionRepo;
+
+    @Autowired
+    private DashboardMensajeRepository mensajeRepo;
+
     // ── RESUMEN GLOBAL ───────────────────────────────────────────────
     @Override
     public DashboardResumenDTO getResumenGlobal() {
         DashboardResumenDTO dto = new DashboardResumenDTO();
         dto.setTotalDocumentos(documentoRepo.countTotal());
         dto.setTotalUsuarios(usuarioRepo.countTotal());
-        // Demo hasta que otros equipos entreguen sus entidades
-        dto.setTotalChunks(0L);
-        dto.setTotalConversaciones(0L);
-        dto.setTotalPreguntas(0L);
-        dto.setRatioCalidad(0.0);
+        dto.setTotalChunks(chunkRepo.countTotal());
+        dto.setTotalConversaciones(conversacionRepo.countTotal());
+        dto.setTotalPreguntas(mensajeRepo.countPreguntas());
+        dto.setRatioCalidad(Math.round(valoracionRepo.getRatioCalidad() * 100.0) / 100.0);
         return dto;
     }
 
@@ -74,55 +89,66 @@ public class DashboardServiceImpl implements DashboardService {
         return resultado;
     }
 
-    // ── DEMO hasta que otros equipos entreguen ────────────────────────
     @Override
+    public List<RankingUsuarioDTO> getRankingUsuarios(int limit, String criterio) {
+    List<RankingUsuarioDTO> resultado = new ArrayList<>();
+        for (Object[] fila : usuarioRepo.getRankingUsuarios(limit, criterio)) {
+            resultado.add(new RankingUsuarioDTO(
+                fila[0].toString(),
+                fila[1].toString(),
+                ((Number) fila[2]).longValue(),
+                ((Number) fila[3]).longValue(),
+                ((Number) fila[4]).longValue()
+            ));
+        }
+        return resultado;
+    }
+
+    // ── CHATS ─────────────────────────────────────────────────────────
     public List<DistribucionDTO> getChatsPorSeccion() {
-        return List.of(
-            new DistribucionDTO("BD", 45L),
-            new DistribucionDTO("Web", 30L),
-            new DistribucionDTO("Programación", 25L),
-            new DistribucionDTO("General", 10L)
-        );
+        List<DistribucionDTO> resultado = new ArrayList<>();
+        for (Object[] fila : conversacionRepo.countPorSeccion()) {
+            resultado.add(new DistribucionDTO(
+                fila[0] != null ? fila[0].toString() : "Sin sección",
+                (Long) fila[1]
+            ));
+        }
+        return resultado;
     }
 
     @Override
     public List<ActividadDiariaDTO> getActividadDiaria(String fechaDesde, String fechaHasta) {
-        return List.of(
-            new ActividadDiariaDTO("2026-03-04", 20L),
-            new ActividadDiariaDTO("2026-03-05", 35L),
-            new ActividadDiariaDTO("2026-03-06", 28L),
-            new ActividadDiariaDTO("2026-03-07", 42L),
-            new ActividadDiariaDTO("2026-03-08", 31L),
-            new ActividadDiariaDTO("2026-03-09", 15L),
-            new ActividadDiariaDTO("2026-03-10", 12L)
-        );
+        LocalDateTime desde = LocalDateTime.parse(fechaDesde + "T00:00:00");
+        LocalDateTime hasta = LocalDateTime.parse(fechaHasta + "T23:59:59");
+        List<ActividadDiariaDTO> resultado = new ArrayList<>();
+        for (Object[] fila : conversacionRepo.actividadPorFecha(desde, hasta)) {
+            resultado.add(new ActividadDiariaDTO(fila[0].toString(), (Long) fila[1]));
+        }
+        return resultado;
     }
 
     @Override
     public List<HorasPuntaDTO> getHorasPunta() {
-        return List.of(
-            new HorasPuntaDTO(8,  35L), new HorasPuntaDTO(9,  52L),
-            new HorasPuntaDTO(10, 48L), new HorasPuntaDTO(11, 43L),
-            new HorasPuntaDTO(12, 30L), new HorasPuntaDTO(15, 55L),
-            new HorasPuntaDTO(16, 62L), new HorasPuntaDTO(17, 45L)
-        );
+        List<HorasPuntaDTO> resultado = new ArrayList<>();
+        for (Object[] fila : mensajeRepo.countPorHora()) {
+            resultado.add(new HorasPuntaDTO(((Number) fila[0]).intValue(), (Long) fila[1]));
+        }
+        return resultado;
     }
 
-    @Override
-    public List<RankingUsuarioDTO> getRankingUsuarios(int limit, String criterio) {
-        return List.of(
-            new RankingUsuarioDTO("candidato@example.com", "Candidato", 12L, 8L,  20L),
-            new RankingUsuarioDTO("profesor@example.com",  "Profesor",  15L, 2L,  17L),
-            new RankingUsuarioDTO("asesor@example.com",    "Asesor",    10L, 12L, 22L)
-        );
-    }
+    // ── ACTIVIDAD RECIENTE ──────────────────────────────────────────────
 
     @Override
     public List<ActividadRecienteDTO> getActividadReciente() {
-        return List.of(
-            new ActividadRecienteDTO("Candidato", "SUBIDA_DOCUMENTO", "Manual_PEAC.pdf",  "2026-03-10T10:00:00"),
-            new ActividadRecienteDTO("Asesor",    "PREGUNTA_RAG",     "¿Qué es el PEAC?", "2026-03-10T09:45:00"),
-            new ActividadRecienteDTO("Candidato", "VALORACION",       "Respuesta #12",    "2026-03-10T09:30:00")
-        );
+        List<ActividadRecienteDTO> resultado = new ArrayList<>();
+        for (Object[] fila : documentoRepo.getActividadReciente()) {
+            resultado.add(new ActividadRecienteDTO(
+                fila[0].toString(),
+                fila[1].toString(),
+                fila[2].toString(),
+                fila[3].toString()
+            ));
+        }
+        return resultado;
     }
 }
